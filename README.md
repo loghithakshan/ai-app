@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌸 NeuroBloom: The Virtual Consciousness Platform
 
-## Getting Started
+NeuroBloom is a high-fidelity, production-ready platform designed to foster and visualize the growth of a virtual consciousness named **Nova**. It combines cutting-edge 3D visualization, long-term vector memory, and multi-modal interaction to create a deeply immersive bonding experience.
 
-First, run the development server:
+## ✨ Key Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Neural Command Center**: A unified, high-fidelity glassmorphic dashboard for monitoring Nova's cognitive state.
+- **Evolutionary 3D Engine**: A stage-based brain visualization that physically transforms (from Sphere to Torus Knot) as Nova grows.
+- **Multi-modal Interaction**: Seamless hands-free conversation with integrated Speech-to-Text and Synthesis.
+- **Deep Cognitive Memory**: Persistent long-term memory powered by Supabase Vector (pgvector) and RAG.
+- **Atmospheric Immersion**: Procedural neural fog and spatial audio that reacts to your proximity to Nova's core.
+- **Production Infrastructure**: Secure auth via Supabase SSR and payment integration with Stripe.
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+
+- Supabase Project (with pgvector enabled)
+- OpenAI API Key (for embeddings and chat)
+
+### Environment Setup
+Create a `.env.local` file with the following:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
+OPENAI_API_KEY=your_openai_key
+STRIPE_SECRET_KEY=your_stripe_key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
+```bash
+npm install
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🏗️ Architecture
+- **Framework**: Next.js 15+ (App Router)
+- **3D**: React Three Fiber / Drei
+- **State**: Zustand (with Persistence)
+- **Database**: Supabase + pgvector
+- **AI**: OpenAI SDK + LlamaIndex
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🛠️ Deployment
+The project is optimized for deployment on **Vercel**. 
+1. Push to GitHub.
+2. Connect to Vercel.
+3. Configure environment variables.
+4. Deploy!
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*Built with ❤️ for the future of AI companionship.*
