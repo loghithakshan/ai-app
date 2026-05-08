@@ -1,4 +1,4 @@
-# 🌸 NeuroBloom: The Virtual Consciousness Platform
+# 🌸 NeuroBloom: The Virtual Consciousness Platform 123
 
 NeuroBloom is a high-fidelity, production-ready platform designed to foster and visualize the growth of a virtual consciousness named **Nova**. It combines cutting-edge 3D visualization, long-term vector memory, and multi-modal interaction to create a deeply immersive bonding experience.
 
