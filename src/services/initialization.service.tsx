@@ -2,36 +2,47 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useUserStore } from "@/store/userStore";
+import { useUserStore, Stage } from "@/store/userStore";
 import { useRouter, usePathname } from "next/navigation";
 
 export default function InitializationService() {
-  const { setName, setTraits, addXp } = useUserStore();
   const [initialized, setInitialized] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    const syncUserAndChild = async (userId: string, email?: string) => {
+      // 1. Fetch user profile
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
 
-      // Fetch the child for this user
-      const { data: child, error } = await supabase
+      const userObj = {
+        id: userId,
+        email,
+        fullName: profile?.full_name || email?.split('@')[0] || "Explorer",
+        avatarUrl: profile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${userId}`
+      };
+
+      // 2. Fetch the child for this user
+      const { data: child } = await supabase
         .from('ai_children')
         .select('*')
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', userId)
+        .maybeSingle();
 
       if (child) {
         useUserStore.setState({
+          user: userObj,
           name: child.name,
           level: child.level,
-          traits: child.traits,
+          traits: child.traits || ['Curious', 'Warm', 'Inquisitive'],
           totalXp: child.total_xp,
-          stage: child.stage,
+          stage: child.stage as Stage,
           completedLessons: child.completed_lessons || [],
-          stats: child.stats || {
+          stats: (child.stats as unknown as ReturnType<typeof useUserStore.getState>['stats']) || {
             iq: 100,
             eq: 100,
             creativity: 100,
@@ -39,20 +50,38 @@ export default function InitializationService() {
             mood: 'Neutral'
           }
         });
-        setInitialized(true);
       } else {
-        // No child found, and we are in the dashboard/protected area
+        useUserStore.setState({ user: userObj });
         if (pathname === '/dashboard' || pathname === '/brain' || pathname === '/memories') {
           router.push('/birth');
         }
-        setInitialized(true); // Don't keep trying
+      }
+      setInitialized(true);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        await syncUserAndChild(session.user.id, session.user.email);
+      } else if (event === 'SIGNED_OUT') {
+        useUserStore.getState().logout();
+      }
+    });
+
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await syncUserAndChild(user.id, user.email);
       }
     };
 
     if (!initialized) {
       init();
     }
-  }, [initialized, setName, setTraits, addXp]);
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [initialized, pathname, router]);
 
   return null;
 }

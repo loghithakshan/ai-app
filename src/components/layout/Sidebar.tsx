@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { useEffect, useState, useSyncExternalStore } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { 
   BrainCircuit, 
   BookOpen, 
@@ -12,13 +13,13 @@ import {
   Settings, 
   LayoutDashboard,
   Sparkles,
-  Zap
+  Zap,
+  LogOut, 
+  User as UserIcon 
 } from "lucide-react";
 import { useUserStore } from "@/store/userStore";
-import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { User } from '@supabase/supabase-js';
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", href: "/dashboard" },
@@ -29,14 +30,14 @@ const navItems = [
   { icon: Wrench, label: "AI Garage", href: "/garage" },
 ];
 
+const emptySubscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export default function Sidebar() {
   const pathname = usePathname();
   const { name, stage, level, xp, traits } = useUserStore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   const xpPercentage = mounted ? (xp / (level * 120)) * 100 : 0;
   
@@ -50,7 +51,7 @@ export default function Sidebar() {
   };
 
   const activeColor = mounted ? (STAGE_COLORS[stage] || "#7c3aed") : "#7c3aed";
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
   const logout = useUserStore(state => state.logout);
 

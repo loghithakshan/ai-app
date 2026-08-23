@@ -1,30 +1,30 @@
 "use client";
 
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { useEffect, useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useMemo, useSyncExternalStore } from "react";
 import { useChatStore } from "@/store/chatStore";
+
+const emptySubscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 export default function AmbientBackground() {
   const { isTyping } = useChatStore();
-  const [mounted, setMounted] = useState(false);
+  const isMounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Generate particles
+  // Generate particles deterministically
   const particles = useMemo(() => {
     return Array.from({ length: 15 }).map((_, i) => ({
       id: i,
-      size: Math.random() * 2 + 1,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      duration: Math.random() * 15 + 15,
-      delay: Math.random() * 5,
+      size: ((i * 13) % 100 / 100) * 2 + 1,
+      x: (i * 41) % 100,
+      y: (i * 67) % 100,
+      duration: ((i * 23) % 100 / 100) * 15 + 15,
+      delay: ((i * 31) % 100 / 100) * 5,
     }));
   }, []);
 
-  if (!mounted) return <div className="fixed inset-0 bg-void z-0" />;
+  if (!isMounted) return <div className="fixed inset-0 bg-void z-0" />;
 
   return (
     <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-void">

@@ -41,6 +41,17 @@ CREATE TABLE IF NOT EXISTS public.ai_children (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Ensure all columns exist on pre-existing ai_children table
+ALTER TABLE public.ai_children ADD COLUMN IF NOT EXISTS id UUID DEFAULT gen_random_uuid();
+ALTER TABLE public.ai_children ADD COLUMN IF NOT EXISTS user_id UUID;
+ALTER TABLE public.ai_children ADD COLUMN IF NOT EXISTS name TEXT DEFAULT 'Nova';
+ALTER TABLE public.ai_children ADD COLUMN IF NOT EXISTS stage TEXT DEFAULT 'NEWBORN';
+ALTER TABLE public.ai_children ADD COLUMN IF NOT EXISTS level INTEGER DEFAULT 1;
+ALTER TABLE public.ai_children ADD COLUMN IF NOT EXISTS total_xp INTEGER DEFAULT 0;
+ALTER TABLE public.ai_children ADD COLUMN IF NOT EXISTS traits TEXT[] DEFAULT ARRAY['Curious', 'Empathetic', 'Creative'];
+ALTER TABLE public.ai_children ADD COLUMN IF NOT EXISTS completed_lessons TEXT[] DEFAULT ARRAY[]::TEXT[];
+ALTER TABLE public.ai_children ADD COLUMN IF NOT EXISTS stats JSONB;
+
 -- 4. Memories Table (Vector Embedded Data Shards)
 CREATE TABLE IF NOT EXISTS public.memories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -54,6 +65,28 @@ CREATE TABLE IF NOT EXISTS public.memories (
   pinned BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Ensure all columns exist on pre-existing memories table
+ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS id UUID DEFAULT gen_random_uuid();
+ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS user_id UUID;
+ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS child_id UUID;
+ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS type TEXT DEFAULT 'moment';
+ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS content TEXT;
+ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS embedding vector(1536);
+ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS timestamp BIGINT DEFAULT (extract(epoch from now()) * 1000)::BIGINT;
+ALTER TABLE public.memories ADD COLUMN IF NOT EXISTS pinned BOOLEAN DEFAULT FALSE;
+
+-- Safely add foreign key constraint if it does not exist
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'memories_child_id_fkey') THEN
+    BEGIN
+      ALTER TABLE public.memories ADD CONSTRAINT memories_child_id_fkey FOREIGN KEY (child_id) REFERENCES public.ai_children(id) ON DELETE CASCADE;
+    EXCEPTION WHEN OTHERS THEN NULL;
+    END;
+  END IF;
+END $$;
 
 -- 5. High-Speed Indexing
 CREATE INDEX IF NOT EXISTS memories_user_id_idx ON public.memories(user_id);
@@ -72,19 +105,27 @@ ALTER TABLE public.ai_children ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.memories ENABLE ROW LEVEL SECURITY;
 
 -- RLS Security Policies
+DROP POLICY IF EXISTS "Users can view and manage their own profile" ON public.profiles;
 CREATE POLICY "Users can view and manage their own profile" 
   ON public.profiles FOR ALL 
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can view and manage their own AI child" ON public.ai_children;
 CREATE POLICY "Users can view and manage their own AI child" 
   ON public.ai_children FOR ALL 
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can view and manage their own memories" ON public.memories;
 CREATE POLICY "Users can view and manage their own memories" 
   ON public.memories FOR ALL 
   USING (auth.uid() = user_id);
 
 -- 7. Vector Similarity Search Function (RAG Procedure)
+DROP FUNCTION IF EXISTS match_memories(vector(1536), float, int, uuid);
+DROP FUNCTION IF EXISTS match_memories(vector, float, int, uuid);
+DROP FUNCTION IF EXISTS match_memories(vector, double precision, integer, uuid);
+DROP FUNCTION IF EXISTS match_memories;
+
 CREATE OR REPLACE FUNCTION match_memories(
   query_embedding vector(1536),
   match_threshold float,
@@ -96,7 +137,7 @@ RETURNS TABLE (
   content text,
   type text,
   notes text,
-  timestamp bigint,
+  "timestamp" bigint,
   similarity float
 )
 LANGUAGE plpgsql

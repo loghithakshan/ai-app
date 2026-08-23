@@ -20,7 +20,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  if (!hasSupabaseConfig) {
+  if (!hasSupabaseConfig || !supabaseUrl || !supabaseAnonKey) {
     return response;
   }
 

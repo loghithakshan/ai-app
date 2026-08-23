@@ -57,7 +57,7 @@ export class MemoryService {
         content: memory.content,
         type: memory.type,
         timestamp: memory.timestamp,
-        embedding: embedding, // This goes into the vector(1536) column
+        embedding: JSON.stringify(embedding), // Formatted vector string for pgvector column
       });
 
       if (error) throw error;
@@ -73,10 +73,17 @@ export class MemoryService {
    * Retrieves memories from Supabase.
    */
   public async getMemories(userId?: string) {
+    let targetUserId = userId;
+    if (!targetUserId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      targetUserId = user.id;
+    }
+
     const { data, error } = await supabase
       .from('memories')
       .select('id, content, type, timestamp')
-      .eq('user_id', userId)
+      .eq('user_id', targetUserId)
       .order('timestamp', { ascending: false });
     
     if (error) {
@@ -99,7 +106,7 @@ export class MemoryService {
 
       // 2. Call the RPC function in Supabase for similarity search
       const { data, error } = await supabase.rpc('match_memories', {
-        query_embedding: queryEmbedding,
+        query_embedding: JSON.stringify(queryEmbedding),
         match_threshold: 0.5,
         match_count: limit,
         p_user_id: user.id
@@ -107,7 +114,7 @@ export class MemoryService {
 
       if (error) throw error;
 
-      const memoryLines = data.map((m: any) => `- [${m.type.toUpperCase()}] ${m.content}`);
+      const memoryLines = (data || []).map((m: { type: string; content: string }) => `- [${m.type.toUpperCase()}] ${m.content}`);
 
       return memoryLines.length > 0 
         ? `\n\nRELEVANT MEMORIES ABOUT YOU AND THE USER:\n${memoryLines.join("\n")}`

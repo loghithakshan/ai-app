@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -19,10 +19,9 @@ const BUILD_STAGES = [
 export default function GaragePage() {
   const router = useRouter();
   const { level, completedLessons, completeLesson, addXp, name } = useUserStore();
-  const [requestedLevel, setRequestedLevel] = useState(0);
-  useEffect(() => {
-    setRequestedLevel(Number(new URLSearchParams(window.location.search).get("level")) || 0);
-  }, []);
+  const [requestedLevel] = useState(() => 
+    typeof window !== "undefined" ? Number(new URLSearchParams(window.location.search).get("level")) || 0 : 0
+  );
   const buildLevel = requestedLevel > 0 ? Math.min(200, requestedLevel) : level;
   const buildId = `curriculum-${buildLevel}`;
   const [practicalComplete, setPracticalComplete] = useState(completedLessons.includes(buildId));
@@ -41,7 +40,7 @@ export default function GaragePage() {
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-orange-300/70">NeuroBloom workshop</p>
           <h1 className="type-title mt-2 font-clash font-bold text-white">AI Garage</h1>
-          <p className="type-subtitle mt-2 max-w-2xl text-white/60">Build an LLM from first principles. Every lesson completed adds another working part to {name}'s model.</p>
+          <p className="type-subtitle mt-2 max-w-2xl text-white/60">Build an LLM from first principles. Every lesson completed adds another working part to {name}&apos;s model.</p>
         </div>
         <Link href="/lessons" className="rounded-xl border border-orange-300/30 bg-orange-300/10 px-4 py-2 text-sm font-bold text-orange-100 hover:bg-orange-300/20">Back to lessons</Link>
       </header>
@@ -52,7 +51,7 @@ export default function GaragePage() {
           <div className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-orange-300/30" />
           <motion.div className="absolute left-1/2 top-1/2 flex h-28 w-28 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full border border-orange-200/60 bg-orange-400/20 shadow-[0_0_70px_rgba(251,146,60,0.45)]" animate={{ scale: [1, 1.04, 1] }} transition={{ duration: 3, repeat: Infinity }}>
             <Brain className="h-9 w-9 text-orange-200" />
-            <span className="mt-1 text-xs font-bold text-orange-100">{name}'s LLM</span>
+            <span className="mt-1 text-xs font-bold text-orange-100">{name}&apos;s LLM</span>
           </motion.div>
           {BUILD_STAGES.map((part, index) => {
             const angle = (index / BUILD_STAGES.length) * Math.PI * 2 - Math.PI / 2;

@@ -1,9 +1,8 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { useEffect, useState, useMemo } from "react";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { useMemo, useSyncExternalStore } from "react";
 import { useChatStore } from "@/store/chatStore";
-
 import { useUserStore } from "@/store/userStore";
 
 const MOOD_COLORS = {
@@ -13,36 +12,35 @@ const MOOD_COLORS = {
   Empathic: "rgba(236, 72, 153, 0.15)" // Rose
 };
 
+const emptySubscribe = () => () => {};
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export default function NeuralBackground() {
   const { isTyping } = useChatStore();
   const { stats } = useUserStore();
   const { scrollY } = useScroll();
-  const [mounted, setMounted] = useState(false);
+  const isMounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
 
   const currentMood = stats.mood || 'Neutral';
   const moodColor = MOOD_COLORS[currentMood as keyof typeof MOOD_COLORS];
 
   // Responsive opacity and movement based on scroll
   const backgroundY = useTransform(scrollY, [0, 1000], [0, 200]);
-  const opacity = useTransform(scrollY, [0, 500], [1, 0.4]);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Generate random floating particles for the "Neural Network" feel
+  // Generate deterministic floating particles for the "Neural Network" feel
   const particles = useMemo(() => {
     return Array.from({ length: 25 }).map((_, i) => ({
       id: i,
-      size: Math.random() * 3 + 1,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      duration: Math.random() * 10 + 10,
-      delay: Math.random() * 5,
+      size: ((i * 17) % 100 / 100) * 3 + 1,
+      x: (i * 37) % 100,
+      y: (i * 73) % 100,
+      duration: ((i * 19) % 100 / 100) * 10 + 10,
+      delay: ((i * 29) % 100 / 100) * 5,
     }));
   }, []);
 
-  if (!mounted) return null;
+  if (!isMounted) return null;
 
   return (
     <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none bg-void">
@@ -110,5 +108,3 @@ export default function NeuralBackground() {
     </div>
   );
 }
-
-import { AnimatePresence } from "framer-motion";

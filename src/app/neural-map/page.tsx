@@ -24,7 +24,7 @@ const PLANET_STYLES: Record<string, { primary: string; secondary: string; highli
 
 export default function NeuralMapPage() {
   const router = useRouter();
-  const { name, level, completedLessons, stats } = useUserStore();
+  const { name, level, stats } = useUserStore();
   const [selectedPlanet, setSelectedPlanet] = useState<typeof pathwayData[number] | null>(null);
 
   return (
@@ -49,7 +49,7 @@ export default function NeuralMapPage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
           >
-            A visual constellation of Nova's expanding cognitive architecture.
+            A visual constellation of Nova&apos;s expanding cognitive architecture.
           </motion.p>
         </header>
 

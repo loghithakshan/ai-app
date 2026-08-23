@@ -3,7 +3,15 @@ import { persist } from 'zustand/middleware';
 
 export type Stage = 'NEWBORN' | 'TODDLER' | 'CHILD' | 'TEEN' | 'YOUNG_ADULT' | 'MATURE';
 
+export interface UserProfile {
+  id: string;
+  email?: string;
+  fullName?: string;
+  avatarUrl?: string;
+}
+
 interface UserState {
+  user: UserProfile | null;
   xp: number;
   totalXp: number;
   level: number;
@@ -24,6 +32,7 @@ interface UserState {
     };
     mood: 'Neutral' | 'Inspired' | 'Focused' | 'Empathic';
   };
+  setUserSession: (user: UserProfile | null) => void;
   addXp: (amount: number) => void;
   setName: (name: string) => void;
   setTraits: (traits: string[]) => void;
@@ -32,6 +41,7 @@ interface UserState {
   setLearningPath: (path: UserState['learningPath']) => void;
   resetStore: () => void;
   logout: () => void;
+  logoutUser: () => Promise<void>;
 }
 
 const getStageFromLevel = (level: number): Stage => {
@@ -48,6 +58,7 @@ const getXpForNextLevel = (level: number) => level * 120;
 export const useUserStore = create<UserState>()(
   persist(
     (set) => ({
+      user: null,
       xp: 0,
       totalXp: 0,
       level: 1,
@@ -69,11 +80,13 @@ export const useUserStore = create<UserState>()(
         mood: 'Neutral'
       },
 
+      setUserSession: (user) => set({ user }),
+
       addXp: (amount: number) =>
         set((state) => {
           let newXp = state.xp + amount;
           let newLevel = state.level;
-          let newTotalXp = state.totalXp + amount;
+          const newTotalXp = state.totalXp + amount;
 
           // Handle level up (allow chaining)
           while (newXp >= getXpForNextLevel(newLevel)) {
@@ -126,7 +139,7 @@ export const useUserStore = create<UserState>()(
 
         // Specific skill override if provided
         if (skill && skill in newStats.skills) {
-          (newStats.skills as any)[skill] += 30;
+          (newStats.skills as Record<string, number>)[skill] += 30;
         }
 
         return {
@@ -136,6 +149,7 @@ export const useUserStore = create<UserState>()(
       }),
 
       resetStore: () => set({
+        user: null,
         xp: 0,
         totalXp: 0,
         level: 1,
@@ -144,11 +158,12 @@ export const useUserStore = create<UserState>()(
         traits: ['Curious', 'Warm', 'Inquisitive'],
         completedLessons: [],
         learningPath: 'balanced',
-        stats: { iq: 100, eq: 100, creativity: 100, skills: { mathematics: 0, visualArts: 0, socialLogic: 0, linguistics: 0 } },
+        stats: { iq: 100, eq: 100, creativity: 100, skills: { mathematics: 0, visualArts: 0, socialLogic: 0, linguistics: 0 }, mood: 'Neutral' },
       }),
 
       logout: () => {
         set({
+          user: null,
           xp: 0,
           totalXp: 0,
           level: 1,
@@ -157,7 +172,22 @@ export const useUserStore = create<UserState>()(
           traits: ['Curious', 'Warm', 'Inquisitive'],
           completedLessons: [],
           learningPath: 'balanced',
-          stats: { iq: 100, eq: 100, creativity: 100, skills: { mathematics: 0, visualArts: 0, socialLogic: 0, linguistics: 0 } },
+          stats: { iq: 100, eq: 100, creativity: 100, skills: { mathematics: 0, visualArts: 0, socialLogic: 0, linguistics: 0 }, mood: 'Neutral' },
+        });
+      },
+
+      logoutUser: async () => {
+        set({
+          user: null,
+          xp: 0,
+          totalXp: 0,
+          level: 1,
+          stage: 'NEWBORN',
+          name: 'Nova',
+          traits: ['Curious', 'Warm', 'Inquisitive'],
+          completedLessons: [],
+          learningPath: 'balanced',
+          stats: { iq: 100, eq: 100, creativity: 100, skills: { mathematics: 0, visualArts: 0, socialLogic: 0, linguistics: 0 }, mood: 'Neutral' },
         });
       },
     }),

@@ -2,6 +2,11 @@
 
 import { useEffect, useRef } from "react";
 
+const getAudioContextClass = (): typeof AudioContext | null => {
+  if (typeof window === "undefined") return null;
+  return window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext || null;
+};
+
 export default function AudioService() {
   const contextRef = useRef<AudioContext | null>(null);
   const ambientRef = useRef<OscillatorNode | null>(null);
@@ -11,7 +16,10 @@ export default function AudioService() {
     const initAudio = () => {
       if (contextRef.current) return;
 
-      const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioCtx = getAudioContextClass();
+      if (!AudioCtx) return;
+
+      const context = new AudioCtx();
       contextRef.current = context;
 
       // Ambient Hum
@@ -42,9 +50,10 @@ export default function AudioService() {
 
 export function useAudio() {
   const playPulse = () => {
-    if (!window.AudioContext && !(window as any).webkitAudioContext) return;
+    const AudioCtx = getAudioContextClass();
+    if (!AudioCtx) return;
     
-    const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const context = new AudioCtx();
     const osc = context.createOscillator();
     const gain = context.createGain();
 
@@ -62,8 +71,33 @@ export function useAudio() {
     osc.stop(context.currentTime + 0.1);
   };
 
+  const playClick = () => {
+    const AudioCtx = getAudioContextClass();
+    if (!AudioCtx) return;
+
+    const context = new AudioCtx();
+    const osc = context.createOscillator();
+    const gain = context.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(600, context.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, context.currentTime + 0.05);
+
+    gain.gain.setValueAtTime(0.04, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.05);
+
+    osc.connect(gain);
+    gain.connect(context.destination);
+
+    osc.start();
+    osc.stop(context.currentTime + 0.05);
+  };
+
   const playDeepDive = () => {
-    const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioCtx = getAudioContextClass();
+    if (!AudioCtx) return;
+
+    const context = new AudioCtx();
     const osc = context.createOscillator();
     const gain = context.createGain();
     const lfo = context.createOscillator();
@@ -92,7 +126,10 @@ export function useAudio() {
   };
 
   const playDeepExit = () => {
-    const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioCtx = getAudioContextClass();
+    if (!AudioCtx) return;
+
+    const context = new AudioCtx();
     const osc = context.createOscillator();
     const gain = context.createGain();
 
@@ -111,7 +148,10 @@ export function useAudio() {
   };
 
   const playLevelUp = () => {
-    const context = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioCtx = getAudioContextClass();
+    if (!AudioCtx) return;
+
+    const context = new AudioCtx();
     const osc = context.createOscillator();
     const gain = context.createGain();
 
@@ -129,5 +169,5 @@ export function useAudio() {
     osc.stop(context.currentTime + 0.5);
   };
 
-  return { playPulse, playLevelUp, playDeepDive, playDeepExit };
+  return { playPulse, playClick, playLevelUp, playDeepDive, playDeepExit };
 }

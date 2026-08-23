@@ -1,7 +1,7 @@
 import { Anthropic } from '@anthropic-ai/sdk';
 
-let _anthropic: any = null;
-const getAnthropic = () => {
+let _anthropic: Anthropic | null = null;
+const getAnthropic = (): Anthropic => {
   if (!_anthropic) {
     _anthropic = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY || '',
@@ -16,6 +16,15 @@ export type ChildState = {
   stage: string;
   traits: string[];
   values: string[];
+};
+
+export type ChatMessagePayload = {
+  role: 'user' | 'assistant' | string;
+  content: string;
+  image?: {
+    type?: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
+    data: string;
+  };
 };
 
 export class AIService {
@@ -43,7 +52,7 @@ export class AIService {
   }
 
   public async generateResponse(
-    messages: any[],
+    messages: ChatMessagePayload[],
     childState: ChildState,
     memoryContext: string
   ) {
@@ -78,21 +87,21 @@ VISUAL CORTEX: If an image is provided, describe it from your perspective and ex
     const formattedMessages = messages.map(msg => {
       if (msg.role === 'user' && msg.image) {
         return {
-          role: 'user',
+          role: 'user' as const,
           content: [
-            { type: 'text', text: msg.content },
+            { type: 'text' as const, text: msg.content },
             {
-              type: 'image',
+              type: 'image' as const,
               source: {
-                type: 'base64',
-                media_type: msg.image.type || 'image/jpeg',
+                type: 'base64' as const,
+                media_type: msg.image.type || ('image/jpeg' as const),
                 data: msg.image.data
               }
             }
           ]
         };
       }
-      return { role: msg.role, content: msg.content };
+      return { role: msg.role === 'user' ? ('user' as const) : ('assistant' as const), content: msg.content };
     });
 
     const response = await getAnthropic().messages.create({
@@ -105,7 +114,7 @@ VISUAL CORTEX: If an image is provided, describe it from your perspective and ex
     return response;
   }
 
-  public parseResponseMetadata(text: string): { cleanText: string; memoryData: any | null; mood: string | null } {
+  public parseResponseMetadata(text: string): { cleanText: string; memoryData: { type?: string; content: string } | null; mood: string | null } {
     let cleanText = text;
     let memoryData = null;
     let mood = null;

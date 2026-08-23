@@ -1,33 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles } from "lucide-react";
 import { useUserStore } from "@/store/userStore";
 
 export default function LevelUpOverlay() {
   const { level, stage } = useUserStore();
-  const [prevLevel, setPrevLevel] = useState<number | null>(null);
-  const [show, setShow] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [seenLevel, setSeenLevel] = useState(level);
+  const [dismissed, setDismissed] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    setPrevLevel(level);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  if (level > seenLevel) {
+    setSeenLevel(level);
+    setDismissed(false);
+  }
+
+  const show = !dismissed && level > 1 && level === seenLevel;
+
+  const particles = useMemo(() => {
+    // Static pseudo-random numbers to keep render pure
+    return Array.from({ length: 18 }).map((_, i) => ({
+      id: i,
+      x: ((i * 37) % 100 / 100 - 0.5) * 380,
+      y: ((i * 73) % 100 / 100 - 0.5) * 380,
+      scale: ((i * 19) % 100 / 100) * 2.5 + 0.5,
+      duration: ((i * 43) % 100 / 100) * 1.5 + 0.8,
+      repeatDelay: ((i * 29) % 100 / 100) * 2,
+    }));
   }, []);
-
-  useEffect(() => {
-    if (!mounted || prevLevel === null) return;
-    if (level > prevLevel) {
-      setShow(true);
-      const t = setTimeout(() => {
-        setShow(false);
-        setPrevLevel(level);
-      }, 4500);
-      return () => clearTimeout(t);
-    }
-  }, [level, prevLevel, mounted]);
 
   const STAGE_COLORS: Record<string, string> = {
     NEWBORN: "#ec4899", TODDLER: "#f59e0b", CHILD: "#10b981",
@@ -43,7 +43,7 @@ export default function LevelUpOverlay() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={() => setShow(false)}
+          onClick={() => setDismissed(true)}
         >
           <motion.div
             className="relative bg-surface/90 backdrop-blur-xl border rounded-3xl p-14 flex flex-col items-center max-w-sm w-full overflow-hidden shadow-2xl"
@@ -62,21 +62,21 @@ export default function LevelUpOverlay() {
 
             {/* Particle sparks */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              {Array.from({ length: 18 }).map((_, i) => (
+              {particles.map((p) => (
                 <motion.div
-                  key={i}
+                  key={p.id}
                   className="absolute w-1.5 h-1.5 rounded-full"
                   style={{ top: "50%", left: "50%", backgroundColor: color }}
                   animate={{
-                    x: (Math.random() - 0.5) * 380,
-                    y: (Math.random() - 0.5) * 380,
+                    x: p.x,
+                    y: p.y,
                     opacity: [1, 0],
-                    scale: [0, Math.random() * 2.5 + 0.5],
+                    scale: [0, p.scale],
                   }}
                   transition={{
-                    duration: Math.random() * 1.5 + 0.8,
+                    duration: p.duration,
                     repeat: Infinity,
-                    repeatDelay: Math.random() * 2,
+                    repeatDelay: p.repeatDelay,
                     ease: "easeOut",
                   }}
                 />

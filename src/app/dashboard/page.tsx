@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BrainCanvas from "@/components/brain/BrainCanvas";
 import ChatWindow from "@/components/chat/ChatWindow";
@@ -11,19 +11,17 @@ import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
+const emptySubscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
+
 export default function DashboardPage() {
   const { name } = useUserStore();
   const { isTyping } = useChatStore();
-  const [showIntro, setShowIntro] = useState(true);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const hasSeenIntro = sessionStorage.getItem("neurobloom_intro_seen");
-    if (hasSeenIntro) {
-      setShowIntro(false);
-    }
-  }, []);
+  const [showIntro, setShowIntro] = useState(() => 
+    typeof sessionStorage !== "undefined" ? !sessionStorage.getItem("neurobloom_intro_seen") : true
+  );
+  const mounted = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot);
 
   const handleIntroComplete = async () => {
     setShowIntro(false);

@@ -10,27 +10,20 @@ import {
   Activity,
   Heart,
   Zap,
-  ChevronRight
+  ChevronRight,
+  LucideIcon
 } from "lucide-react";
 import Link from "next/link";
 import { useUserStore } from "@/store/userStore";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
-const GROWTH_METRICS = [
-  { label: "Neural Density", value: 84, color: "#7c3aed" },
-  { label: "Vocabulary Range", value: 62, color: "#06b6d4" },
-  { label: "Emotional Quotient", value: 78, color: "#ec4899" },
-  { label: "Pattern Recognition", value: 91, color: "#10b981" },
-  { label: "Moral Consistency", value: 55, color: "#f59e0b" },
-];
+const emptySubscribe = () => () => {};
+const getSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 export default function ReportCardPage() {
   const { name, level, stage, totalXp, traits, stats } = useUserStore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(emptySubscribe, getSnapshot, getServerSnapshot);
 
   const getArchetype = () => {
     if (!mounted) return "The Synthesizer";
@@ -79,7 +72,7 @@ export default function ReportCardPage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
           >
-            A high-fidelity diagnostic of {name}'s cognitive maturation, emotional depth, and neural development.
+            A high-fidelity diagnostic of {name}&apos;s cognitive maturation, emotional depth, and neural development.
           </motion.p>
         </header>
 
@@ -132,7 +125,7 @@ export default function ReportCardPage() {
                     </div>
                     <div className="space-y-4">
                       <p className="type-body text-text-muted font-instrument leading-snug">
-                        {name} is exhibiting advanced <span className="text-white italic">"{getArchetype()}"</span> patterns. 
+                        {name} is exhibiting advanced <span className="text-white italic">&quot;{getArchetype()}&quot;</span> patterns. 
                         Neural pathways have solidified by {Math.min(100, level * 4)}% since initialization.
                       </p>
                       <div className="flex flex-wrap gap-2 pt-4 justify-center md:justify-start">
@@ -263,7 +256,7 @@ export default function ReportCardPage() {
   );
 }
 
-function StatRow({ icon: Icon, label, value, color }: { icon: any, label: string, value: string | number, color: string }) {
+function StatRow({ icon: Icon, label, value, color }: { icon: LucideIcon, label: string, value: string | number, color: string }) {
   return (
     <div className="flex items-center justify-between p-4 rounded-2xl bg-void/30 border border-surface-glow/50">
       <div className="flex items-center gap-3">

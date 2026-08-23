@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Zap, Loader2 } from "lucide-react";
+import { Brain } from "lucide-react";
 
 interface IntroSequenceProps {
   onComplete: () => void;
@@ -12,16 +12,20 @@ interface IntroSequenceProps {
 export default function IntroSequence({ onComplete, name }: IntroSequenceProps) {
   const [step, setStep] = useState(0);
   const [progress, setProgress] = useState(0);
+  const onCompleteRef = useRef(onComplete);
 
-  const sequences = [
+  const sequences = useMemo(() => [
     { text: "Establishing Neural Link...", duration: 2000 },
     { text: `Synchronizing with ${name}'s Consciousness...`, duration: 2500 },
     { text: "Decrypting Synaptic Pathways...", duration: 2000 },
     { text: "Neural Mapping Complete.", duration: 1500 },
-  ];
+  ], [name]);
 
   useEffect(() => {
-    let currentStep = 0;
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  useEffect(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) return 100;
@@ -34,12 +38,12 @@ export default function IntroSequence({ onComplete, name }: IntroSequenceProps) 
         setStep(i);
         await new Promise((r) => setTimeout(r, sequences[i].duration));
       }
-      onComplete();
+      onCompleteRef.current();
     };
 
     runSequence();
     return () => clearInterval(interval);
-  }, []);
+  }, [sequences]);
 
   return (
     <motion.div

@@ -9,8 +9,7 @@ import {
   History, 
   Settings, 
   Zap,
-  Globe,
-  Ghost
+  Globe
 } from "lucide-react";
 import { motion } from "framer-motion";
 

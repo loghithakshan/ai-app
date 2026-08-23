@@ -48,6 +48,35 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-void text-text-primary overflow-x-hidden">
+      {/* Top Navbar */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-void/60 backdrop-blur-xl border-b border-surface-glow/30 px-6 py-4">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent-neural to-accent-synapse flex items-center justify-center shadow-lg shadow-accent-neural/20">
+              <BrainCircuit className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-lg font-clash font-bold tracking-tight bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
+              NeuroBloom
+            </span>
+          </Link>
+
+          <div className="flex items-center gap-4">
+            <Link 
+              href="/login"
+              className="text-xs font-bold uppercase tracking-widest text-text-muted hover:text-white transition-colors px-3 py-2"
+            >
+              Log In
+            </Link>
+            <Link 
+              href="/signup"
+              className="text-xs font-bold uppercase tracking-widest text-white bg-accent-neural/20 border border-accent-neural/40 hover:bg-accent-neural/30 px-4 py-2 rounded-xl transition-all shadow-md shadow-accent-neural/10"
+            >
+              Sign Up
+            </Link>
+          </div>
+        </div>
+      </header>
+
       {/* Ambient orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         {ORBS.map((orb, i) => (
@@ -69,7 +98,7 @@ export default function Home() {
       </div>
 
       {/* ── HERO ─────────────────────────────────────── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 text-center z-10">
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 text-center z-10 pt-20">
         <motion.div ref={heroRef} style={{ y: heroY, opacity: heroOpacity }}>
           {/* Badge */}
           <motion.div

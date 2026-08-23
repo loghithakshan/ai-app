@@ -14,7 +14,7 @@ const stripeProxy = new Proxy({} as Stripe, {
     }
 
     const stripe = new Stripe(apiKey, {
-      apiVersion: '2025-01-27' as any, // Using a stable API version
+      apiVersion: '2025-01-27' as NonNullable<ConstructorParameters<typeof Stripe>[1]>['apiVersion'],
       appInfo: {
         name: 'NeuroBloom',
         version: '0.1.0',

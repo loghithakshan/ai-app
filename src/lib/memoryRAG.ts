@@ -75,7 +75,7 @@ export async function retrieveRelevantMemories(query: string, topK: number = 3) 
     if (!idx) return [];
     const retriever = idx.asRetriever({ similarityTopK: topK });
     const results = await retriever.retrieve(query);
-    return results.map(r => (r.node as any).text as string);
+    return results.map(r => (r.node as unknown as { text: string }).text);
   } catch (error) {
     console.error("Error retrieving memories, falling back", error);
     useFallback = true;

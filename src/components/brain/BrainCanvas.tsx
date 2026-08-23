@@ -64,7 +64,8 @@ const STAGE_COLORS: Record<string, string> = {
 };
 
 function SynapticLine({ start, end, color, isTyping }: { start: [number, number, number], end: [number, number, number], color: string, isTyping: boolean }) {
-  const lineRef = useRef<THREE.Object3D>(null!);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const lineRef = useRef<any>(null!);
   const sparkRef = useRef<THREE.Mesh>(null!);
   const [pulse, setPulse] = useState(0);
 
@@ -80,9 +81,10 @@ function SynapticLine({ start, end, color, isTyping }: { start: [number, number,
     const camDist = state.camera.position.length();
     const opacityBase = camDist < 3 ? (camDist - 1.5) / 1.5 : 1;
     
-    if (lineRef.current?.material) {
-      lineRef.current.material.opacity = Math.max(0, (0.1 + pulse * (isTyping ? 0.9 : 0.8)) * opacityBase);
-      lineRef.current.material.lineWidth = (isTyping ? 0.6 : 0.3) + pulse * 2;
+    const lineMat = (lineRef.current as unknown as { material?: { opacity: number; lineWidth: number } })?.material;
+    if (lineMat) {
+      lineMat.opacity = Math.max(0, (0.1 + pulse * (isTyping ? 0.9 : 0.8)) * opacityBase);
+      lineMat.lineWidth = (isTyping ? 0.6 : 0.3) + pulse * 2;
     }
 
     if (sparkRef.current?.material) {
@@ -446,7 +448,7 @@ export default function BrainCanvas() {
 
   const nodes: MemoryNode[] = useMemo(() => {
     const memoriesToProcess = storeMemories.length > 0 ? storeMemories : DEMO_MEMORIES;
-    return memoriesToProcess.map((m: MemoryNode, i: number) => {
+    return memoriesToProcess.map((m: { id: string; type: string; content: string; timestamp: number }, i: number) => {
       const r = 4 + pseudoRandom(i + 10) * 4;
       const phi = Math.acos(-1 + (2 * i) / Math.max(1, memoriesToProcess.length));
       const theta = Math.sqrt(memoriesToProcess.length * Math.PI) * phi;

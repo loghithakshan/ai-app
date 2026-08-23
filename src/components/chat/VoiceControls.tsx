@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Mic, MicOff, Volume2, VolumeX } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface VoiceControlsProps {
   onTranscript: (text: string) => void;
@@ -13,38 +13,55 @@ interface VoiceControlsProps {
 export default function VoiceControls({ onTranscript, lastAssistantMessage, autoSpeak = true }: VoiceControlsProps) {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [recognition, setRecognition] = useState<any>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const recognitionRef = useRef<unknown>(null);
+  const onTranscriptRef = useRef(onTranscript);
+
+  useEffect(() => {
+    onTranscriptRef.current = onTranscript;
+  }, [onTranscript]);
 
   useEffect(() => {
     // Initialize Speech Recognition
     if (typeof window !== 'undefined') {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const SpeechRecognition = (window as unknown as { SpeechRecognition?: new () => unknown; webkitSpeechRecognition?: new () => unknown }).SpeechRecognition ||
+                                 (window as unknown as { webkitSpeechRecognition?: new () => unknown }).webkitSpeechRecognition;
       if (SpeechRecognition) {
-        const recog = new SpeechRecognition();
+        const recog = new SpeechRecognition() as unknown as {
+          continuous: boolean;
+          interimResults: boolean;
+          lang: string;
+          onresult: (event: { results: Array<Array<{ transcript: string }>> }) => void;
+          onerror: () => void;
+          onend: () => void;
+          start: () => void;
+          stop: () => void;
+        };
         recog.continuous = false;
         recog.interimResults = false;
         recog.lang = 'en-US';
 
-        recog.onresult = (event: any) => {
+        recog.onresult = (event) => {
           const transcript = event.results[0][0].transcript;
-          onTranscript(transcript);
+          onTranscriptRef.current(transcript);
           setIsListening(false);
         };
 
         recog.onerror = () => setIsListening(false);
         recog.onend = () => setIsListening(false);
 
-        setRecognition(recog);
+        recognitionRef.current = recog;
       }
     }
-  }, [onTranscript]);
+  }, []);
 
   const toggleListening = () => {
+    const recog = recognitionRef.current as { start: () => void; stop: () => void } | null;
+    if (!recog) return;
     if (isListening) {
-      recognition?.stop();
+      recog.stop();
     } else {
-      recognition?.start();
+      recog.start();
       setIsListening(true);
     }
   };

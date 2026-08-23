@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BrainCircuit, Mail, Lock, User, ArrowRight, Sparkles } from "lucide-react";
+import { BrainCircuit, Mail, Lock, User, ArrowRight, Sparkles, Eye, EyeOff, GitBranch, Globe } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,24 +22,57 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          }
         }
-      }
-    });
+      });
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      } else {
+        if (data.user) {
+          await supabase.from('profiles').upsert({
+            id: data.user.id,
+            full_name: fullName,
+            updated_at: new Date().toISOString()
+          });
+        }
+        setSuccess(true);
+        setLoading(false);
+        setTimeout(() => router.push("/birth"), 2000);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to create entity account";
+      setError(msg);
       setLoading(false);
-    } else {
-      setSuccess(true);
+    }
+  };
+
+  const handleOAuthLogin = async (provider: 'github' | 'google') => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/birth`
+        }
+      });
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : `Failed to authenticate with ${provider}`;
+      setError(msg);
       setLoading(false);
-      // Wait a bit then redirect or show confirmation message
-      setTimeout(() => router.push("/login"), 3000);
     }
   };
 
@@ -74,7 +108,7 @@ export default function SignupPage() {
                 <Sparkles className="w-10 h-10 text-emerald-400" />
               </div>
               <h2 className="type-title font-clash font-bold text-white">Transmission Received</h2>
-              <p className="text-text-muted font-instrument text-lg">Check your email to verify your connection. Redirecting to access portal...</p>
+              <p className="text-text-muted font-instrument text-lg">Entity established. Connecting to consciousness birth chamber...</p>
             </motion.div>
           ) : (
             <form onSubmit={handleSignup} className="space-y-5">
@@ -113,13 +147,20 @@ export default function SignupPage() {
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted group-focus-within:text-accent-synapse transition-colors" />
                   <input 
-                    type="password" 
+                    type={showPassword ? "text" : "password"}
                     required
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-void/50 border border-surface-glow rounded-2xl pl-12 pr-6 py-4 text-white focus:outline-none focus:border-accent-synapse/50 transition-all placeholder:text-text-muted/30"
+                    className="w-full bg-void/50 border border-surface-glow rounded-2xl pl-12 pr-12 py-4 text-white focus:outline-none focus:border-accent-synapse/50 transition-all placeholder:text-text-muted/30"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
               </div>
 
@@ -131,7 +172,7 @@ export default function SignupPage() {
                     exit={{ opacity: 0, height: 0 }}
                     className="text-red-400 text-xs font-bold bg-red-400/10 border border-red-400/20 p-3 rounded-xl flex items-center gap-2"
                   >
-                    <div className="w-1 h-1 rounded-full bg-red-400" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-400" />
                     {error}
                   </motion.div>
                 )}
@@ -150,6 +191,38 @@ export default function SignupPage() {
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
+              </button>
+
+              <div className="my-6 flex items-center gap-4">
+                <div className="flex-1 h-px bg-surface-glow" />
+                <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Or Sign Up With</span>
+                <div className="flex-1 h-px bg-surface-glow" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  type="button"
+                  onClick={() => handleOAuthLogin('github')}
+                  className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-white/5 border border-surface-glow hover:border-white/20 transition-all text-white font-bold text-xs uppercase tracking-widest"
+                >
+                  <GitBranch className="w-4 h-4" /> Github
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => handleOAuthLogin('google')}
+                  className="flex items-center justify-center gap-2 py-3 rounded-2xl bg-white/5 border border-surface-glow hover:border-white/20 transition-all text-white font-bold text-xs uppercase tracking-widest"
+                >
+                  <Globe className="w-4 h-4" /> Google
+                </button>
+              </div>
+
+              <button 
+                type="button"
+                onClick={() => router.push('/birth')}
+                className="w-full mt-2 py-3 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 text-cyan-200 font-bold uppercase tracking-[0.15em] text-[11px] transition-all flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-4 h-4 text-cyan-400" />
+                Enter Demo Mode (Instant Guest Access)
               </button>
             </form>
           )}

@@ -190,6 +190,7 @@ export default function ChatWindow() {
                 {/* Image Attachment */}
                 {msg.imageUrl && (
                   <div className="mb-3 rounded-xl overflow-hidden border border-white/10">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={msg.imageUrl} alt="Visual Shard" className="w-full max-h-64 object-cover" />
                   </div>
                 )}
@@ -267,6 +268,7 @@ export default function ChatWindow() {
               className="max-w-3xl mx-auto mb-4 relative inline-block"
             >
               <div className="relative rounded-2xl overflow-hidden border-2 border-accent-neural/50 shadow-2xl">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={selectedImage.preview} alt="Upload Preview" className="h-32 w-auto object-contain" />
                 <button
                   onClick={() => setSelectedImage(null)}

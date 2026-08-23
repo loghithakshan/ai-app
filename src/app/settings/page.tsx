@@ -17,7 +17,7 @@ import { useUserStore } from "@/store/userStore";
 import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
-  const { name, setName, resetStore, stage } = useUserStore();
+  const { name, setName, resetStore } = useUserStore();
   const [newName, setNewName] = useState(name);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);

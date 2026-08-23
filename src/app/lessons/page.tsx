@@ -72,7 +72,7 @@ export default function LessonsPage() {
     color: '#06B6D4',
   }));
 
-  const getChallenge = (lesson: { id: string; title: string }) => {
+  const getChallenge = (targetLesson: { id: string; title: string }) => {
     const phase = activeLevel < 25 ? {
       question: 'What is the first step an LLM takes before it can process a sentence?',
       options: ['Split text into tokens', 'Add a user interface', 'Publish a website'],
@@ -97,7 +97,7 @@ export default function LessonsPage() {
     return {
       ...phase,
       answer: 0,
-      lesson: `${phase.lesson} Level ${activeLevel} of 200 follows the ${paths.find(path => path.id === learningPath)?.label} path.`,
+      lesson: `${phase.lesson} Level ${activeLevel} of 200 (${targetLesson?.title || "Module"}) follows the ${paths.find(path => path.id === learningPath)?.label} path.`,
     };
   };
 

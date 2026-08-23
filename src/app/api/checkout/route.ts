@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    const { title, price, amount } = await req.json();
+    const { title, amount } = await req.json();
 
     if (!stripe) {
       return NextResponse.json(
@@ -40,10 +40,11 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Stripe Checkout Error:', err);
+    const message = err instanceof Error ? err.message : 'Internal Server Error';
     return NextResponse.json(
-      { error: err.message || 'Internal Server Error' },
+      { error: message },
       { status: 500 }
     );
   }
