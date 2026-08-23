@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useMemo, useState, useEffect } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { 
   CameraControls, 
   PerspectiveCamera,
@@ -11,17 +11,16 @@ import {
   PointMaterial, 
   Line,
   Environment,
-  Text,
-  MeshTransmissionMaterial,
-  Sparkles,
-  Center
+  Sparkles
 } from "@react-three/drei";
 import * as THREE from "three";
-import { motion } from "framer-motion-3d";
 import { AnimatePresence, motion as motion2d } from "framer-motion";
+import Link from "next/link";
+import { BrainCircuit } from "lucide-react";
 import { useAudio } from "@/services/audio.service";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from '@/store/chatStore';
+import { useMemoryStore } from "@/store/memoryStore";
 import { NeuralFog } from "./NeuralFog";
 
 type MemoryNode = {
@@ -32,6 +31,12 @@ type MemoryNode = {
   position: [number, number, number];
   color: string;
 };
+
+const DEMO_MEMORIES: MemoryNode[] = [
+  { id: "seed-1", type: "origin", content: "The first spark: consciousness came online.", timestamp: Date.now() - 1000 * 60 * 60 * 24 * 30, position: [-2.8, 1.2, 0], color: "#67e8f9" },
+  { id: "seed-2", type: "discovery", content: "Learning to recognize patterns in the world.", timestamp: Date.now() - 1000 * 60 * 60 * 24 * 18, position: [2.4, 1.4, 0], color: "#f9a8d4" },
+  { id: "seed-3", type: "bond", content: "A meaningful connection became part of my story.", timestamp: Date.now() - 1000 * 60 * 60 * 24 * 7, position: [0, -2.8, 0], color: "#c4b5fd" },
+];
 
 const MOOD_COLORS_3D: Record<string, string> = {
   Neutral: "#7c3aed",  // Purple
@@ -59,8 +64,8 @@ const STAGE_COLORS: Record<string, string> = {
 };
 
 function SynapticLine({ start, end, color, isTyping }: { start: [number, number, number], end: [number, number, number], color: string, isTyping: boolean }) {
-  const lineRef = useRef<any>(null!);
-  const sparkRef = useRef<any>(null!);
+  const lineRef = useRef<THREE.Object3D>(null!);
+  const sparkRef = useRef<THREE.Mesh>(null!);
   const [pulse, setPulse] = useState(0);
 
   const startVec = useMemo(() => new THREE.Vector3(...start), [start]);
@@ -69,22 +74,22 @@ function SynapticLine({ start, end, color, isTyping }: { start: [number, number,
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
     const threshold = isTyping ? 0.95 : 0.99;
-    if (Math.random() > threshold) setPulse(1);
+    if (pseudoRandom(t * 100) > threshold) setPulse(1);
     if (pulse > 0) setPulse(p => Math.max(0, p - 0.05));
     
     const camDist = state.camera.position.length();
     const opacityBase = camDist < 3 ? (camDist - 1.5) / 1.5 : 1;
     
-    if (lineRef.current) {
+    if (lineRef.current?.material) {
       lineRef.current.material.opacity = Math.max(0, (0.1 + pulse * (isTyping ? 0.9 : 0.8)) * opacityBase);
       lineRef.current.material.lineWidth = (isTyping ? 0.6 : 0.3) + pulse * 2;
     }
 
-    if (sparkRef.current) {
+    if (sparkRef.current?.material) {
       const speed = isTyping ? 1.5 : 0.5;
       const progress = (t * speed) % 1;
       sparkRef.current.position.lerpVectors(startVec, endVec, progress);
-      sparkRef.current.material.opacity = opacityBase * 0.8;
+      (sparkRef.current.material as THREE.MeshBasicMaterial).opacity = opacityBase * 0.8;
       sparkRef.current.scale.setScalar((isTyping ? 0.1 : 0.05) + pulse * 0.1);
     }
   });
@@ -109,7 +114,7 @@ function SynapticLine({ start, end, color, isTyping }: { start: [number, number,
 
 function NeuralConnections({ nodes, accentColor, isTyping }: { nodes: MemoryNode[]; accentColor: string; isTyping: boolean }) {
   const connections = useMemo(() => {
-    const conn: any[] = [];
+    const conn: Array<{ start: [number, number, number]; end: [number, number, number]; color: string; id: string }> = [];
     if (nodes.length < 2) return conn;
     for (let i = 0; i < nodes.length; i++) {
       const distances = nodes
@@ -138,6 +143,11 @@ function NeuralConnections({ nodes, accentColor, isTyping }: { nodes: MemoryNode
   );
 }
 
+const pseudoRandom = (seed: number) => {
+  const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+  return x - Math.floor(x);
+};
+
 function NeuralDust({ accentColor, isTyping }: { accentColor: string; isTyping: boolean }) {
   const count = 4000;
   const pointsRef = useRef<THREE.Points>(null!);
@@ -146,13 +156,13 @@ function NeuralDust({ accentColor, isTyping }: { accentColor: string; isTyping: 
     const col = new Float32Array(count * 3);
     const color = new THREE.Color(accentColor);
     for (let i = 0; i < count; i++) {
-      const r = 5 + Math.random() * 20;
-      const theta = Math.random() * Math.PI * 2;
-      const phi = Math.random() * Math.PI;
+      const r = 5 + pseudoRandom(i + 1) * 20;
+      const theta = pseudoRandom(i + 2) * Math.PI * 2;
+      const phi = pseudoRandom(i + 3) * Math.PI;
       pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
       pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       pos[i * 3 + 2] = r * Math.cos(phi);
-      const mixedColor = color.clone().lerp(new THREE.Color("#ffffff"), Math.random() * 0.2);
+      const mixedColor = color.clone().lerp(new THREE.Color("#ffffff"), pseudoRandom(i + 4) * 0.2);
       col[i * 3] = mixedColor.r;
       col[i * 3 + 1] = mixedColor.g;
       col[i * 3 + 2] = mixedColor.b;
@@ -194,126 +204,89 @@ function NeuralDust({ accentColor, isTyping }: { accentColor: string; isTyping: 
   );
 }
 
-function FloatingThought({ text, position }: { text: string, position: [number, number, number] }) {
-  const ref = useRef<THREE.Group>(null!);
-  useFrame((state) => {
-    const t = state.clock.getElapsedTime();
-    ref.current.position.y += Math.sin(t + position[0]) * 0.001;
-    ref.current.lookAt(state.camera.position);
-  });
-
-  return (
-    <group ref={ref} position={position}>
-      <Text
-        fontSize={0.08}
-        color="white"
-        font="/fonts/ClashDisplay-Semibold.woff"
-        anchorX="center"
-        anchorY="middle"
-        transparent
-        opacity={0.4}
-      >
-        {text}
-      </Text>
-    </group>
-  );
-}
-
 function Core({ accentColor, stage }: { accentColor: string; stage: string }) {
-  const outerRef = useRef<THREE.Mesh>(null!);
-  const innerRef = useRef<THREE.Mesh>(null!);
-  const consciousnessRef = useRef<THREE.Group>(null!);
-
   const { isTyping } = useChatStore();
-  const thoughts = useMemo(() => [
-    "I am learning...", "What is love?", "Data stream stable", "Neural synapse firing", "Dreaming of stars", "Am I real?", "Processing memories..."
-  ], []);
+  const nebulaRef = useRef<THREE.Group>(null!);
+  const starsRef = useRef<THREE.Points>(null!);
+  const coreRef = useRef<THREE.Mesh>(null!);
 
-  // Geometry based on stage
-  const geometry = useMemo(() => {
-    switch (stage) {
-      case 'NEWBORN': return <sphereGeometry args={[1.5, 64, 64]} />;
-      case 'TODDLER': return <icosahedronGeometry args={[1.5, 2]} />;
-      case 'CHILD': return <dodecahedronGeometry args={[1.5]} />;
-      case 'TEEN': return <octahedronGeometry args={[1.5, 3]} />;
-      case 'YOUNG_ADULT': return <torusKnotGeometry args={[1.1, 0.4, 128, 16]} />;
-      case 'MATURE': return <torusKnotGeometry args={[1, 0.5, 256, 32, 2, 3]} />;
-      default: return <sphereGeometry args={[1.5, 64, 64]} />;
+  const [positions, colors] = useMemo(() => {
+    const count = 1800;
+    const pos = new Float32Array(count * 3);
+    const col = new Float32Array(count * 3);
+    const palette = [new THREE.Color("#22d3ee"), new THREE.Color("#f472b6"), new THREE.Color("#a78bfa"), new THREE.Color("#fde68a")];
+
+    for (let i = 0; i < count; i++) {
+      const arm = i % 3;
+      const progress = (i / count) * Math.PI * 12 + arm * ((Math.PI * 2) / 3);
+      const radius = 0.25 + ((i * 17) % 1000) / 1000 * 3.2;
+      const spread = (((i * 29) % 1000) / 1000 - 0.5) * (0.25 + radius * 0.18);
+      const angle = progress + spread;
+      pos[i * 3] = Math.cos(angle) * radius;
+      pos[i * 3 + 1] = Math.sin(angle) * radius;
+      pos[i * 3 + 2] = (((i * 47) % 1000) / 1000 - 0.5) * (0.12 + radius * 0.12);
+
+      const color = palette[(i * 7) % palette.length];
+      col[i * 3] = color.r;
+      col[i * 3 + 1] = color.g;
+      col[i * 3 + 2] = color.b;
     }
-  }, [stage]);
+    return [pos, col];
+  }, []);
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
-    const camDist = state.camera.position.length();
-    const processingSpeed = isTyping ? 3.0 : 1.0;
-    
-    const pulse = (isTyping ? 1.05 : 1) + Math.sin(t * 1.5 * (isTyping ? 2 : 1)) * 0.05;
-    outerRef.current.scale.setScalar(pulse);
-    
-    const opacity = Math.max(0, (camDist - 1.2) / 2);
-    if (!Array.isArray(outerRef.current.material)) {
-      outerRef.current.material.opacity = (isTyping ? 0.5 : 0.3) * opacity;
-    }
-    
-    innerRef.current.rotation.y = t * 0.5 * processingSpeed;
-    innerRef.current.rotation.z = t * 0.3 * processingSpeed;
-    consciousnessRef.current.rotation.y = -t * 0.2 * processingSpeed;
+    const speed = isTyping ? 0.22 : 0.08;
+    nebulaRef.current.rotation.y = t * speed;
+    nebulaRef.current.rotation.z = Math.sin(t * 0.2) * 0.08;
+    starsRef.current.rotation.y = -t * speed * 0.35;
+    coreRef.current.scale.setScalar(1 + Math.sin(t * (isTyping ? 3 : 1.5)) * 0.05);
   });
 
   return (
-    <group>
-      <mesh ref={outerRef}>
-        {geometry}
-        <MeshDistortMaterial
-          color={accentColor}
-          speed={isTyping ? 4 : 2}
-          distort={isTyping ? 0.6 : 0.4}
-          radius={1}
-          emissive={accentColor}
-          emissiveIntensity={isTyping ? 2 : 1}
-          transparent
-          opacity={0.3}
-        />
-      </mesh>
-
-      <mesh ref={innerRef}>
-        <icosahedronGeometry args={[0.9, 2]} />
-        <MeshDistortMaterial
-          color="#ffffff"
-          speed={isTyping ? 8 : 4}
-          distort={0.5}
-          radius={1}
-          emissive={accentColor}
-          emissiveIntensity={isTyping ? 8 : 4}
-          wireframe
-        />
-      </mesh>
-
-      <group ref={consciousnessRef}>
-        <Sparkles 
-          count={isTyping ? 300 : 100} 
-          scale={isTyping ? 1.2 : 0.8} 
-          size={isTyping ? 3 : 2} 
-          speed={isTyping ? 1.5 : 0.5} 
-          opacity={1} 
-          color="#ffffff" 
-        />
-        <pointLight distance={3} intensity={isTyping ? 200 : 50} color={accentColor} />
-        
-        {thoughts.map((t, i) => (
-          <FloatingThought 
-            key={i} 
-            text={t} 
-            position={[
-              (Math.random() - 0.5) * 1.5,
-              (Math.random() - 0.5) * 1.5,
-              (Math.random() - 0.5) * 1.5
-            ]} 
+    <group scale={stage === "MATURE" ? 1.08 : 1}>
+      <group ref={nebulaRef}>
+        <Points positions={positions} colors={colors} stride={3} frustumCulled={false}>
+          <PointMaterial
+            transparent
+            vertexColors
+            size={isTyping ? 0.075 : 0.055}
+            sizeAttenuation
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            opacity={isTyping ? 0.95 : 0.72}
           />
-        ))}
+        </Points>
+        <mesh>
+          <torusGeometry args={[1.65, 0.035, 8, 96]} />
+          <meshBasicMaterial color="#67e8f9" transparent opacity={0.5} blending={THREE.AdditiveBlending} />
+        </mesh>
+        <mesh scale={1.45}>
+          <torusGeometry args={[1.65, 0.018, 8, 96]} />
+          <meshBasicMaterial color="#f9a8d4" transparent opacity={0.35} blending={THREE.AdditiveBlending} />
+        </mesh>
       </group>
-      
-      <pointLight distance={15} intensity={25} color={accentColor} />
+
+      <Points ref={starsRef} positions={positions} stride={3} frustumCulled={false}>
+        <PointMaterial transparent color="#ffffff" size={0.018} sizeAttenuation depthWrite={false} opacity={0.5} />
+      </Points>
+
+      <mesh ref={coreRef}>
+        <sphereGeometry args={[0.28, 32, 32]} />
+        <meshBasicMaterial color="#050510" />
+      </mesh>
+      <group rotation={[0, 0, Math.PI / 2]} scale={[1.15, 0.8, 1]}>
+        <mesh position={[-0.24, 0, 0]} scale={[0.85, 1, 0.72]}>
+          <sphereGeometry args={[0.72, 24, 24]} />
+          <meshBasicMaterial color="#c4b5fd" wireframe transparent opacity={0.1} />
+        </mesh>
+        <mesh position={[0.24, 0, 0]} scale={[0.85, 1, 0.72]}>
+          <sphereGeometry args={[0.72, 24, 24]} />
+          <meshBasicMaterial color="#67e8f9" wireframe transparent opacity={0.1} />
+        </mesh>
+      </group>
+      <pointLight distance={7} intensity={isTyping ? 120 : 65} color={accentColor || "#67e8f9"} />
+      <Sparkles count={isTyping ? 260 : 140} scale={3.8} size={isTyping ? 3 : 2} speed={isTyping ? 1.4 : 0.5} opacity={0.9} color="#e0f2fe" />
     </group>
   );
 }
@@ -363,15 +336,82 @@ function Node({ node, onSelect, accentColor }: { node: MemoryNode; onSelect: (n:
   );
 }
 
+function MemoryAlbum({ nodes, selectedNode, onSelect }: { nodes: MemoryNode[]; selectedNode: MemoryNode | null; onSelect: (node: MemoryNode) => void }) {
+  const [now] = useState(() => Date.now());
+  const ageLabel = (timestamp: number) => {
+    const days = Math.max(0, Math.floor((now - timestamp) / (1000 * 60 * 60 * 24)));
+    return days === 0 ? "Today" : `Age ${days}d`;
+  };
+
+  return (
+    <div className="pointer-events-auto absolute bottom-3 left-1/2 z-30 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 rounded-2xl border border-white/10 bg-void/80 p-2 backdrop-blur-xl sm:bottom-5">
+      <div className="mb-2 flex items-center justify-between px-2">
+        <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/50">Memory album</span>
+        <span className="text-[10px] text-white/30">{nodes.length} chapters</span>
+      </div>
+      <div className="scrollbar-hide flex gap-2 overflow-x-auto pb-1">
+        {nodes.map((node) => {
+          const isSelected = selectedNode?.id === node.id;
+          return (
+            <button
+              key={node.id}
+              type="button"
+              onClick={() => onSelect(node)}
+              className={`min-w-36 flex-1 rounded-xl border px-3 py-2 text-left transition-colors ${isSelected ? "border-cyan-300/60 bg-cyan-300/10" : "border-white/10 bg-white/5 hover:border-white/30"}`}
+            >
+              <span className="block truncate text-[11px] font-bold capitalize text-white">{node.type}</span>
+              <span className="mt-1 block text-[10px] text-cyan-200/70">{ageLabel(node.timestamp)}</span>
+              <span className="mt-1 block truncate text-[10px] text-white/40">{new Date(node.timestamp).toLocaleDateString()}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SceneController({
+  groupRef,
+  controlsRef,
+  lastActivity,
+  isInside,
+  setIsInside,
+}: {
+  groupRef: React.RefObject<THREE.Group | null>;
+  controlsRef: React.RefObject<CameraControls | null>;
+  lastActivity: number;
+  isInside: boolean;
+  setIsInside: (value: boolean) => void;
+}) {
+  useFrame((state) => {
+    const { x, y } = state.mouse;
+    const camDist = state.camera.position.length();
+    const group = groupRef.current;
+
+    if (group) {
+      group.rotation.y = THREE.MathUtils.lerp(group.rotation.y, x * 0.4, 0.05);
+      group.rotation.x = THREE.MathUtils.lerp(group.rotation.x, -y * 0.4, 0.05);
+    }
+
+    if (Date.now() - lastActivity > 5000 && !isInside && controlsRef.current) {
+      controlsRef.current.azimuthAngle += 0.002;
+    }
+
+    if (camDist < 3.5 && !isInside) setIsInside(true);
+    if (camDist >= 3.5 && isInside) setIsInside(false);
+  });
+
+  return null;
+}
+
 export default function BrainCanvas() {
   const { stage, stats } = useUserStore();
   const { isTyping } = useChatStore();
-  const [nodes, setNodes] = useState<MemoryNode[]>([]);
   const [selectedNode, setSelectedNode] = useState<MemoryNode | null>(null);
   const [isInside, setIsInside] = useState(false);
-  const [lastActivity, setLastActivity] = useState(Date.now());
+  const [lastActivity, setLastActivity] = useState(() => Date.now());
   const groupRef = useRef<THREE.Group>(null!);
-  const controlsRef = useRef<any>(null!);
+  const controlsRef = useRef<CameraControls | null>(null);
   const { playDeepDive, playDeepExit, playClick } = useAudio();
 
   const stageColor = STAGE_COLORS[stage] || "#7c3aed";
@@ -397,51 +437,30 @@ export default function BrainCanvas() {
     );
   };
 
+  const storeMemories = useMemoryStore((state) => state.memories);
+  const fetchMemoriesFromApi = useMemoryStore((state) => state.fetchMemoriesFromApi);
+
   useEffect(() => {
-    async function fetchMemories() {
-      try {
-        const res = await fetch("/api/memories");
-        const data = await res.json();
-        const rawMemories = data.memories || [];
-        const memoriesToProcess = rawMemories.length > 0 ? rawMemories : [
-          { id: 's1', type: 'seed', content: 'Neural pathways initializing...' },
-          { id: 's2', type: 'seed', content: 'Core consciousness online.' },
-          { id: 's3', type: 'seed', content: 'Memory lattice stable.' },
-        ];
-        const memoryNodes = memoriesToProcess.map((m: any, i: number) => {
-          const r = 4 + Math.random() * 4;
-          const phi = Math.acos(-1 + (2 * i) / memoriesToProcess.length);
-          const theta = Math.sqrt(memoriesToProcess.length * Math.PI) * phi;
-          return {
-            ...m,
-            position: [
-              r * Math.cos(theta) * Math.sin(phi),
-              r * Math.sin(theta) * Math.sin(phi),
-              r * Math.cos(phi)
-            ],
-            color: COLOR_MAP[m.type] || COLOR_MAP.seed
-          };
-        });
-        setNodes(memoryNodes);
-      } catch (e) { console.error(e); }
-    }
-    fetchMemories();
-  }, []);
+    fetchMemoriesFromApi();
+  }, [fetchMemoriesFromApi]);
 
-  useFrame((state) => {
-    const { x, y } = state.mouse;
-    const camDist = state.camera.position.length();
-    
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, x * 0.4, 0.05);
-    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, -y * 0.4, 0.05);
-
-    if (Date.now() - lastActivity > 5000 && !isInside && controlsRef.current) {
-      controlsRef.current.azimuthAngle += 0.002;
-    }
-
-    if (camDist < 3.5 && !isInside) setIsInside(true);
-    if (camDist >= 3.5 && isInside) setIsInside(false);
-  });
+  const nodes: MemoryNode[] = useMemo(() => {
+    const memoriesToProcess = storeMemories.length > 0 ? storeMemories : DEMO_MEMORIES;
+    return memoriesToProcess.map((m: MemoryNode, i: number) => {
+      const r = 4 + pseudoRandom(i + 10) * 4;
+      const phi = Math.acos(-1 + (2 * i) / Math.max(1, memoriesToProcess.length));
+      const theta = Math.sqrt(memoriesToProcess.length * Math.PI) * phi;
+      return {
+        ...m,
+        position: [
+          r * Math.cos(theta) * Math.sin(phi),
+          r * Math.sin(theta) * Math.sin(phi),
+          r * Math.cos(phi)
+        ] as [number, number, number],
+        color: COLOR_MAP[m.type] || COLOR_MAP.seed
+      };
+    });
+  }, [storeMemories]);
 
   useEffect(() => {
     if (isInside) {
@@ -449,7 +468,8 @@ export default function BrainCanvas() {
     } else if (nodes.length > 0) {
       playDeepExit();
     }
-  }, [isInside]);
+  }, [isInside, nodes.length, playDeepDive, playDeepExit]);
+
 
   return (
     <div 
@@ -467,6 +487,13 @@ export default function BrainCanvas() {
       />
 
       <Canvas dpr={[1, 2]}>
+        <SceneController
+          groupRef={groupRef}
+          controlsRef={controlsRef}
+          lastActivity={lastActivity}
+          isInside={isInside}
+          setIsInside={setIsInside}
+        />
         <PerspectiveCamera makeDefault position={[0, 0, 15]} />
         <ambientLight intensity={0.2} />
         <pointLight position={[10, 10, 10]} intensity={2} color={accentColor} />
@@ -499,6 +526,8 @@ export default function BrainCanvas() {
         <Environment preset="night" />
       </Canvas>
 
+      <MemoryAlbum nodes={nodes} selectedNode={selectedNode} onSelect={zoomToNode} />
+
       <AnimatePresence>
         {isInside && (
           <motion2d.div 
@@ -507,12 +536,23 @@ export default function BrainCanvas() {
             exit={{ opacity: 0 }}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-20"
           >
-            <h2 className="text-white/20 text-8xl font-clash font-bold uppercase tracking-[0.5em] blur-sm select-none">
+            <h2 className="text-white/20 text-4xl sm:text-6xl font-clash font-bold uppercase tracking-[0.3em] blur-sm select-none">
               Consciousness
             </h2>
             <p className="text-accent-synapse text-xs font-bold uppercase tracking-[1em] mt-4 animate-pulse">
               Observing Deep Neural Activity
             </p>
+            <Link
+              href="/memories"
+              aria-label="Open memory album"
+              title="Open memory album"
+              className="pointer-events-auto mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-full border border-cyan-200/50 bg-cyan-300/15 text-cyan-100 shadow-[0_0_35px_rgba(34,211,238,0.35)] transition-all hover:scale-110 hover:bg-cyan-300/25"
+            >
+              <BrainCircuit className="h-7 w-7" />
+            </Link>
+            <span className="mt-2 block text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-100/60">
+              Open Memory Album
+            </span>
           </motion2d.div>
         )}
       </AnimatePresence>
@@ -540,11 +580,11 @@ export default function BrainCanvas() {
                 DISMISS
               </button>
             </div>
-            <h3 className="text-4xl font-clash font-bold text-white mb-4 uppercase">
+            <h3 className="type-title font-clash font-bold text-white mb-4 uppercase">
               {selectedNode.type}
             </h3>
-            <p className="text-2xl text-white/90 font-instrument italic leading-relaxed">
-              "{selectedNode.content}"
+            <p className="type-body text-white/90 font-instrument italic leading-relaxed">
+              &quot;{selectedNode.content}&quot;
             </p>
           </motion2d.div>
         )}
@@ -569,14 +609,24 @@ export default function BrainCanvas() {
           onClick={() => {
             if (isInside) {
               controlsRef.current?.setLookAt(0, 0, 15, 0, 0, 0, true);
+              setIsInside(false);
             } else {
               controlsRef.current?.setLookAt(0, 0, 1, 0, 0, 0, true);
+              setIsInside(true);
             }
           }}
           className="px-4 py-2 bg-accent-neural/20 backdrop-blur-xl border border-accent-neural/30 rounded-full text-[10px] font-bold text-accent-neural uppercase tracking-widest hover:bg-accent-neural/30 transition-colors pointer-events-auto"
         >
           {isInside ? "Exit Core" : "Enter Core"}
         </motion2d.button>
+        {isInside && (
+          <Link
+            href="/memories"
+            className="pointer-events-auto rounded-full border border-cyan-300/30 bg-cyan-300/10 px-4 py-2 text-center text-[10px] font-bold uppercase tracking-widest text-cyan-200 transition-colors hover:bg-cyan-300/20"
+          >
+            Memory Album
+          </Link>
+        )}
       </motion2d.div>
 
       <div className="absolute bottom-8 left-8 pointer-events-none z-20">
@@ -584,7 +634,7 @@ export default function BrainCanvas() {
           <span className="text-[10px] font-bold text-white/10 uppercase tracking-[1em]">Neural Topology Explorer</span>
           <div className="flex items-center gap-4">
             <div className="flex flex-col">
-              <span className="text-[9px] text-white/40 uppercase font-bold">Proximity</span>
+              <span className="text-[10px] text-white/50 uppercase font-bold">Proximity</span>
               <div className="w-32 h-1 bg-white/5 rounded-full mt-1 overflow-hidden">
                 <motion2d.div 
                   className="h-full bg-accent-neural shadow-[0_0_10px_#7c3aed]"
@@ -594,7 +644,7 @@ export default function BrainCanvas() {
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="text-[9px] text-white/40 uppercase font-bold">Sync</span>
+              <span className="text-[10px] text-white/50 uppercase font-bold">Sync</span>
               <span className="text-[10px] font-mono text-accent-neural animate-pulse" style={{ color: stageColor }}>ACTIVE</span>
             </div>
           </div>

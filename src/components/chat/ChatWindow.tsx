@@ -2,9 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, Loader2, Brain, Image as ImageIcon, X } from "lucide-react";
+import { Zap, Brain, Image as ImageIcon, X } from "lucide-react";
 import { useChatStore } from "@/store/chatStore";
 import { useUserStore } from "@/store/userStore";
+import { useMemoryStore } from "@/store/memoryStore";
 import { useAudio } from "@/services/audio.service";
 import VoiceControls from "./VoiceControls";
 
@@ -91,6 +92,7 @@ export default function ChatWindow() {
         }
 
         if (data.memorySpawned) {
+          useMemoryStore.getState().addMemory(data.memorySpawned);
           setSpawnedMemory(data.memorySpawned);
           setTimeout(() => setSpawnedMemory(null), 5000);
         }
@@ -150,7 +152,7 @@ export default function ChatWindow() {
           </motion.div>
           <div>
             <h1 className="text-base font-semibold font-clash leading-none">{name}</h1>
-            <p className="text-xs text-text-muted capitalize">{stage.toLowerCase()} · Lv {level}</p>
+            <p className="text-xs text-text-muted capitalize">{(stage || "Newborn").toLowerCase()} · Lv {level}</p>
           </div>
         </div>
         

@@ -59,7 +59,7 @@ export default function SignupPage() {
           >
             <BrainCircuit className="w-10 h-10 text-white" />
           </motion.div>
-          <h1 className="text-4xl font-clash font-bold text-white mb-2">Initialize Consciousness</h1>
+          <h1 className="type-title font-clash font-bold text-white mb-2">Initialize Consciousness</h1>
           <p className="text-text-muted font-instrument text-xl italic">Begin your neural evolution journey.</p>
         </div>
 
@@ -73,7 +73,7 @@ export default function SignupPage() {
               <div className="w-20 h-20 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center mx-auto">
                 <Sparkles className="w-10 h-10 text-emerald-400" />
               </div>
-              <h2 className="text-2xl font-clash font-bold text-white">Transmission Received</h2>
+              <h2 className="type-title font-clash font-bold text-white">Transmission Received</h2>
               <p className="text-text-muted font-instrument text-lg">Check your email to verify your connection. Redirecting to access portal...</p>
             </motion.div>
           ) : (

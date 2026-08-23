@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { 
   BrainCircuit, 
   BookOpen, 
   Layers, 
   Award, 
+  Wrench,
   Settings, 
   LayoutDashboard,
   Sparkles,
@@ -25,6 +26,7 @@ const navItems = [
   { icon: BookOpen, label: "Lessons", href: "/lessons" },
   { icon: Layers, label: "Memories", href: "/memories" },
   { icon: Award, label: "Report Card", href: "/report-card" },
+  { icon: Wrench, label: "AI Garage", href: "/garage" },
 ];
 
 export default function Sidebar() {
@@ -67,7 +69,7 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-80 border-r border-surface-glow bg-void/80 backdrop-blur-xl flex flex-col p-6 z-20 overflow-y-auto custom-scrollbar">
+    <aside className="flex w-80 shrink-0 border-r border-surface-glow bg-void/80 p-6 z-20 flex-col overflow-y-auto custom-scrollbar">
       {/* Brand / Logo Section */}
       <div className="flex items-center gap-3 mb-10 px-2">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-neural to-accent-synapse flex items-center justify-center shadow-lg shadow-accent-neural/20">

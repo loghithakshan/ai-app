@@ -51,7 +51,7 @@ export default function LoginPage() {
           >
             <Brain className="w-10 h-10 text-white" />
           </motion.div>
-          <h1 className="text-4xl font-clash font-bold text-white mb-2">Welcome Back</h1>
+          <h1 className="type-title font-clash font-bold text-white mb-2">Welcome Back</h1>
           <p className="text-text-muted font-instrument text-xl italic">Continue your journey with Nova.</p>
         </div>
 

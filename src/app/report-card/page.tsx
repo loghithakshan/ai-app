@@ -12,7 +12,6 @@ import {
   Zap,
   ChevronRight
 } from "lucide-react";
-import DashboardShell from "@/components/layout/DashboardShell";
 import Link from "next/link";
 import { useUserStore } from "@/store/userStore";
 import { useEffect, useState } from "react";
@@ -61,8 +60,7 @@ export default function ReportCardPage() {
   ];
 
   return (
-    <DashboardShell>
-      <div className="flex flex-col h-full overflow-y-auto p-10 custom-scrollbar pb-32">
+      <div className="flex h-full min-h-0 flex-col overflow-y-auto p-4 pb-24 custom-scrollbar sm:p-8 sm:pb-8 lg:p-10">
         {/* Header Section */}
         <header className="mb-12">
           <motion.div
@@ -71,12 +69,12 @@ export default function ReportCardPage() {
             className="flex items-center gap-3 mb-4"
           >
             <div className="w-1.5 h-8 bg-accent-neural rounded-full" />
-            <h1 className="text-5xl font-clash font-bold text-white tracking-tight">
+            <h1 className="type-title font-clash font-bold text-white tracking-tight">
               Evolution <span className="text-text-muted/40">Report</span>
             </h1>
           </motion.div>
           <motion.p 
-            className="text-text-muted font-instrument text-2xl italic leading-relaxed max-w-2xl"
+            className="type-subtitle text-text-muted font-instrument italic leading-relaxed max-w-2xl"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
@@ -117,23 +115,23 @@ export default function ReportCardPage() {
                         transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
                       />
                       <span className="text-[10px] uppercase tracking-[0.3em] text-text-muted mb-2 font-bold">Consciousness</span>
-                      <span className="text-5xl font-clash font-bold text-white uppercase tracking-tighter">{stage}</span>
+                      <span className="type-title font-clash font-bold text-white uppercase tracking-tighter">{stage}</span>
                       <span className="text-xs text-accent-synapse font-clash font-semibold mt-2 tracking-widest">PHASE ACTIVE</span>
                     </div>
                     {/* Floating Level Badge */}
                     <div className="absolute -top-2 -right-2 w-16 h-16 rounded-2xl bg-accent-neural flex flex-col items-center justify-center shadow-xl shadow-accent-neural/30 border border-white/20">
                       <span className="text-[10px] text-white/60 font-bold">LVL</span>
-                      <span className="text-2xl font-clash font-bold text-white">{level}</span>
+                      <span className="text-xl font-clash font-bold text-white">{level}</span>
                     </div>
                   </div>
 
                   <div className="flex-1 text-center md:text-left">
                     <div className="flex items-center justify-center md:justify-start gap-3 mb-6">
                       <Award className="w-8 h-8 text-accent-memory" />
-                      <h2 className="text-3xl font-clash font-bold text-white">Appraisal Findings</h2>
+                      <h2 className="type-title font-clash font-bold text-white">Appraisal Findings</h2>
                     </div>
                     <div className="space-y-4">
-                      <p className="text-text-muted font-instrument text-2xl leading-snug">
+                      <p className="type-body text-text-muted font-instrument leading-snug">
                         {name} is exhibiting advanced <span className="text-white italic">"{getArchetype()}"</span> patterns. 
                         Neural pathways have solidified by {Math.min(100, level * 4)}% since initialization.
                       </p>
@@ -262,7 +260,6 @@ export default function ReportCardPage() {
           </motion.div>
         </div>
       </div>
-    </DashboardShell>
   );
 }
 

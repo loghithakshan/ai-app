@@ -13,7 +13,6 @@ import {
   CreditCard,
   RefreshCw,
 } from "lucide-react";
-import DashboardShell from "@/components/layout/DashboardShell";
 import { useUserStore } from "@/store/userStore";
 import { useRouter } from "next/navigation";
 
@@ -22,7 +21,7 @@ export default function SettingsPage() {
   const [newName, setNewName] = useState(name);
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [checkoutItem, setCheckoutItem] = useState<any>(null);
+  const [checkoutItem, setCheckoutItem] = useState<{ title: string; price: string } | null>(null);
   const router = useRouter();
 
   const handleSaveName = () => {
@@ -39,8 +38,8 @@ export default function SettingsPage() {
   };
 
   return (
-    <DashboardShell>
-      <div className="flex flex-col h-full overflow-y-auto p-10 custom-scrollbar pb-32">
+    <>
+      <div className="flex h-full min-h-0 flex-col overflow-y-auto p-4 pb-24 custom-scrollbar sm:p-8 sm:pb-8 lg:p-10">
         <header className="mb-12">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -48,12 +47,12 @@ export default function SettingsPage() {
             className="flex items-center gap-3 mb-4"
           >
             <Settings className="w-10 h-10 text-accent-neural" />
-            <h1 className="text-5xl font-clash font-bold text-white tracking-tight">
+            <h1 className="type-title font-clash font-bold text-white tracking-tight">
               Control <span className="text-text-muted/40">Center</span>
             </h1>
           </motion.div>
           <motion.p 
-            className="text-text-muted font-instrument text-2xl italic"
+            className="type-subtitle text-text-muted font-instrument italic"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}
@@ -189,7 +188,7 @@ export default function SettingsPage() {
                 <div className="w-16 h-16 rounded-2xl bg-accent-neural/20 flex items-center justify-center text-accent-neural mb-4">
                   <CreditCard className="w-8 h-8" />
                 </div>
-                <h2 className="text-2xl font-clash font-bold text-white mb-2">Neural Acquisition</h2>
+                <h2 className="type-title font-clash font-bold text-white mb-2">Neural Acquisition</h2>
                 <p className="text-text-muted text-sm italic font-instrument">Initiating secure cognitive transfer for {checkoutItem.title}</p>
               </div>
 
@@ -256,12 +255,12 @@ export default function SettingsPage() {
           </div>
         )}
       </AnimatePresence>
-    </DashboardShell>
+    </>
   );
 }
 
-function PricingCard({ title, price, features, icon: Icon, color, onClick }: any) {
-  const colors: any = {
+function PricingCard({ title, price, features, icon: Icon, color, onClick }: { title: string; price: string; features: string[]; icon: React.ComponentType<{ className?: string }>; color: string; onClick: () => void }) {
+  const colors: Record<string, string> = {
     blue: "text-blue-400 border-blue-500/20 bg-blue-500/5",
     yellow: "text-yellow-400 border-yellow-500/20 bg-yellow-500/5",
   };
@@ -272,7 +271,7 @@ function PricingCard({ title, price, features, icon: Icon, color, onClick }: any
         <Icon className="w-12 h-12" />
       </div>
       <h3 className="text-lg font-clash font-bold text-white mb-1">{title}</h3>
-      <p className="text-2xl font-bold mb-6 text-white">{price}</p>
+      <p className="text-xl font-bold mb-6 text-white">{price}</p>
       <ul className="space-y-3 mb-8">
         {features.map((f: string) => (
           <li key={f} className="flex items-center gap-2 text-xs text-text-muted">
@@ -291,7 +290,7 @@ function PricingCard({ title, price, features, icon: Icon, color, onClick }: any
   );
 }
 
-function ThemeOption({ label, color, active }: any) {
+function ThemeOption({ label, color, active }: { label: string; color: string; active?: boolean }) {
   return (
     <div className={`cursor-pointer p-4 rounded-2xl border ${active ? 'border-accent-neural bg-accent-neural/5' : 'border-surface-glow hover:border-white/20'} transition-all text-center group`}>
       <div className={`w-full aspect-square rounded-xl ${color} mb-3 shadow-inner`} />

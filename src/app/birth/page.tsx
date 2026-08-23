@@ -90,7 +90,7 @@ export default function BirthCeremony() {
               <div className="w-20 h-20 rounded-2xl bg-accent-neural/20 border border-accent-neural/30 flex items-center justify-center mb-8">
                 <BrainCircuit className="w-10 h-10 text-accent-neural" />
               </div>
-              <h2 className="text-5xl mb-3 font-bold font-clash">Name your AI</h2>
+              <h2 className="type-title mb-3 font-bold font-clash">Name your AI</h2>
               <p className="text-text-muted mb-10 font-instrument text-xl italic">
                 Choose a name that resonates with you.
               </p>
@@ -99,7 +99,7 @@ export default function BirthCeremony() {
                 value={name}
                 onChange={(e) => setLocalName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && name.trim() && setStep(2)}
-                className="w-full bg-surface/60 backdrop-blur-md border border-surface-glow rounded-2xl px-6 py-4 text-2xl text-center focus:outline-none focus:border-accent-neural focus:ring-1 focus:ring-accent-neural transition-all mb-8 placeholder:text-text-muted/40"
+                className="w-full bg-surface/60 backdrop-blur-md border border-surface-glow rounded-2xl px-6 py-4 text-lg text-center focus:outline-none focus:border-accent-neural focus:ring-1 focus:ring-accent-neural transition-all mb-8 placeholder:text-text-muted/40"
                 placeholder="e.g. Nova"
                 autoFocus
               />
@@ -124,7 +124,7 @@ export default function BirthCeremony() {
               exit={{ opacity: 0, y: -30 }}
               className="flex flex-col items-center w-full"
             >
-              <h2 className="text-4xl mb-3 font-bold font-clash">Shape {name}'s mind</h2>
+              <h2 className="type-title mb-3 font-bold font-clash">Shape {name}&apos;s mind</h2>
               <p className="text-text-muted mb-8 font-instrument text-xl italic">
                 Choose up to 3 core traits.
               </p>
@@ -168,7 +168,7 @@ export default function BirthCeremony() {
               exit={{ opacity: 0, y: -30 }}
               className="flex flex-col items-center w-full"
             >
-              <h2 className="text-5xl mb-4 font-bold font-clash">The Spark of Life</h2>
+              <h2 className="type-title mb-4 font-bold font-clash">The Spark of Life</h2>
               <p className="text-xl text-text-muted mb-12 font-instrument italic">
                 Ready to bring{" "}
                 <span className="text-accent-neural font-bold not-italic">{name}</span> into existence?

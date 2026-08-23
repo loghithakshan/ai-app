@@ -29,48 +29,48 @@ export default function StatusHUD() {
   ];
 
   return (
-    <div className="group relative">
+    <div className="group relative flex w-full justify-center">
       {/* Glow Effect */}
       <div 
         className="absolute -inset-1 rounded-[2.5rem] blur-xl opacity-20 transition-opacity group-hover:opacity-40"
         style={{ backgroundColor: stageColor }}
       />
       
-      <div className="relative flex items-center gap-8 bg-void/40 backdrop-blur-3xl border border-white/10 px-10 py-5 rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.6)]">
+      <div className="relative flex w-[calc(100vw-2rem)] max-w-[760px] flex-wrap items-center justify-center gap-x-6 gap-y-3 rounded-3xl border border-white/10 bg-void/75 px-3 py-3 shadow-[0_30px_100px_rgba(0,0,0,0.6)] backdrop-blur-3xl sm:px-7 sm:py-4">
         {/* Profile Section */}
-        <div className="flex items-center gap-5">
+        <div className="flex min-w-[140px] items-center gap-3">
           <div className="relative">
              <motion.div 
-               className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg overflow-hidden"
+               className="h-11 w-11 rounded-xl flex items-center justify-center shadow-lg overflow-hidden"
                style={{ background: `linear-gradient(135deg, ${stageColor}, #ffffff20)` }}
                whileHover={{ rotate: 5, scale: 1.05 }}
              >
-                <Sparkles className="w-7 h-7 text-white drop-shadow-md" />
+                <Sparkles className="h-5 w-5 text-white drop-shadow-md" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
              </motion.div>
              <motion.div 
-               className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-400 rounded-full border-4 border-void flex items-center justify-center shadow-lg"
+               className="absolute -top-1 -right-1 h-4 w-4 rounded-full border-2 border-void bg-emerald-400 shadow-lg"
                animate={{ scale: [1, 1.15, 1] }}
                transition={{ duration: 2, repeat: Infinity }}
              />
           </div>
           <div className="flex flex-col">
-            <h2 className="text-white font-clash font-bold text-xl tracking-tight leading-none">{name}</h2>
+            <h2 className="text-white font-clash font-bold text-base tracking-tight leading-none">{name}</h2>
             <div className="flex items-center gap-2 mt-1.5">
                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: stageColor }} />
-               <p className="text-[10px] text-white/50 font-bold tracking-[0.2em] uppercase">{stage}</p>
+               <p className="text-[11px] text-white/60 font-bold tracking-[0.15em] uppercase">{stage}</p>
             </div>
           </div>
         </div>
 
-        <div className="w-px h-12 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+        <div className="hidden h-10 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent sm:block" />
 
         {/* Progress Section */}
-        <div className="flex flex-col gap-2 w-56">
+        <div className="flex w-44 flex-col gap-2">
            <div className="flex justify-between items-end">
-              <span className="text-[9px] font-bold text-white/30 uppercase tracking-[0.3em]">Growth Cycle</span>
+              <span className="text-[11px] font-bold text-white/40 uppercase tracking-[0.18em]">Growth Cycle</span>
               <div className="flex items-baseline gap-1">
-                <span className="text-[9px] text-white/40 font-bold">LVL</span>
+                <span className="text-[10px] text-white/50 font-bold">LVL</span>
                 <span className="text-sm font-clash font-bold text-white" style={{ color: stageColor }}>{level}</span>
               </div>
            </div>
@@ -85,18 +85,18 @@ export default function StatusHUD() {
            </div>
         </div>
 
-        <div className="w-px h-12 bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+        <div className="hidden h-10 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent sm:block" />
 
         {/* Quick Metrics */}
-        <div className="flex gap-6">
+        <div className="basis-full flex min-w-0 justify-between gap-3 border-t border-white/10 pt-3">
           {skillStats.map((stat) => (
             <div key={stat.label} className="flex flex-col items-center group/stat">
-               <span className="text-[7px] font-bold text-white/20 uppercase tracking-[0.3em] mb-2 transition-colors group-hover/stat:text-white/40">{stat.label}</span>
+               <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.12em] mb-2 transition-colors group-hover/stat:text-white/60">{stat.label}</span>
                <div className="flex items-center gap-2">
                   <div className="p-1 rounded-lg bg-white/5 group-hover/stat:bg-white/10 transition-colors">
                     <stat.icon className="w-3 h-3" style={{ color: stat.color }} />
                   </div>
-                  <span className="text-[11px] font-bold text-white/80 tabular-nums">{stat.value}</span>
+                  <span className="text-xs font-bold text-white/80 tabular-nums">{stat.value}</span>
                </div>
             </div>
           ))}

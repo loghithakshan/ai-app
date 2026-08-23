@@ -71,6 +71,31 @@ body {
   background: var(--bg-void);
 }
 
+.type-display {
+  font-size: clamp(2.25rem, 6vw, 5rem);
+  line-height: 0.98;
+}
+
+.type-title {
+  font-size: clamp(1.75rem, 3vw, 2.75rem);
+  line-height: 1.08;
+}
+
+.type-subtitle {
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  line-height: 1.55;
+}
+
+.type-body {
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.type-caption {
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);

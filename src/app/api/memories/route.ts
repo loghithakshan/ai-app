@@ -7,40 +7,47 @@ export async function GET() {
   const { supabase } = await import("@/lib/supabase");
   
   const memoryService = new MemoryService();
-  const { data: { session } } = await supabase.auth.getSession();
-
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
   try {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      return NextResponse.json({ memories: [], isGuest: true });
+    }
+
     const memories = await memoryService.getMemories(session.user.id);
     return NextResponse.json({ memories });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch memories' }, { status: 500 });
+    console.error("GET memories error:", error);
+    return NextResponse.json({ memories: [], isGuest: true });
   }
 }
+
 export async function POST(req: Request) {
   const { MemoryService } = await import("@/services/memory.service");
   const { supabase } = await import("@/lib/supabase");
   
   const memoryService = new MemoryService();
-  const { data: { session } } = await supabase.auth.getSession();
-
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
 
   try {
+    const { data: { session } } = await supabase.auth.getSession();
     const memory = await req.json();
-    const savedMemory = await memoryService.addMemory({
+
+    const memoryToSave = {
       ...memory,
-      timestamp: Date.now(),
-      id: crypto.randomUUID()
-    });
+      timestamp: memory.timestamp || Date.now(),
+      id: memory.id || crypto.randomUUID()
+    };
+
+    if (!session) {
+      return NextResponse.json({ memory: memoryToSave, isGuest: true });
+    }
+
+    const savedMemory = await memoryService.addMemory(memoryToSave);
     return NextResponse.json({ memory: savedMemory });
   } catch (error) {
     console.error("POST memory error:", error);
     return NextResponse.json({ error: 'Failed to save memory' }, { status: 500 });
   }
 }
+

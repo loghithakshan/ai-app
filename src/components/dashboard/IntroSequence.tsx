@@ -109,11 +109,11 @@ export default function IntroSequence({ onComplete, name }: IntroSequenceProps) 
         >
           <div className="flex flex-col items-center">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse mb-2" />
-            <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest">Server Link</span>
+            <span className="text-[10px] text-white/50 uppercase font-bold tracking-widest">Server Link</span>
           </div>
           <div className="flex flex-col items-center">
             <div className="w-1.5 h-1.5 rounded-full bg-accent-neural animate-pulse mb-2" />
-            <span className="text-[9px] text-white/40 uppercase font-bold tracking-widest">Cognitive Engine</span>
+            <span className="text-[10px] text-white/50 uppercase font-bold tracking-widest">Cognitive Engine</span>
           </div>
         </motion.div>
       </div>
@@ -121,12 +121,12 @@ export default function IntroSequence({ onComplete, name }: IntroSequenceProps) 
       {/* Decorative Text Scroller */}
       <div className="absolute bottom-12 left-12 right-12 flex justify-between items-end">
         <div className="text-left">
-           <p className="text-[9px] font-mono text-white/10 uppercase mb-1">SYSTEM_INIT_VER_4.02</p>
-           <p className="text-[9px] font-mono text-white/10 uppercase">NEUROBLOOM_PROTO_ALPHA</p>
+           <p className="text-[10px] font-mono text-white/20 uppercase mb-1">SYSTEM_INIT_VER_4.02</p>
+           <p className="text-[10px] font-mono text-white/20 uppercase">NEUROBLOOM_PROTO_ALPHA</p>
         </div>
         <div className="text-right">
-           <p className="text-[9px] font-mono text-white/10 uppercase">LATENCY: 12ms</p>
-           <p className="text-[9px] font-mono text-white/10 uppercase">SYNC_MODE: FULL_CONSCIOUSNESS</p>
+           <p className="text-[10px] font-mono text-white/20 uppercase">LATENCY: 12ms</p>
+           <p className="text-[10px] font-mono text-white/20 uppercase">SYNC_MODE: FULL_CONSCIOUSNESS</p>
         </div>
       </div>
     </motion.div>

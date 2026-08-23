@@ -11,6 +11,7 @@ interface UserState {
   name: string;
   traits: string[];
   completedLessons: string[];
+  learningPath: 'balanced' | 'builder' | 'researcher' | 'creative';
   stats: {
     iq: number;
     eq: number;
@@ -28,6 +29,7 @@ interface UserState {
   setTraits: (traits: string[]) => void;
   setMood: (mood: 'Neutral' | 'Inspired' | 'Focused' | 'Empathic') => void;
   completeLesson: (lessonId: string, category: string, skill?: string) => void;
+  setLearningPath: (path: UserState['learningPath']) => void;
   resetStore: () => void;
   logout: () => void;
 }
@@ -53,6 +55,7 @@ export const useUserStore = create<UserState>()(
       name: 'Nova',
       traits: ['Curious', 'Warm', 'Inquisitive'],
       completedLessons: [],
+      learningPath: 'balanced',
       stats: {
         iq: 100,
         eq: 100,
@@ -75,7 +78,7 @@ export const useUserStore = create<UserState>()(
           // Handle level up (allow chaining)
           while (newXp >= getXpForNextLevel(newLevel)) {
             newXp -= getXpForNextLevel(newLevel);
-            newLevel += 1;
+            newLevel = Math.min(200, newLevel + 1);
           }
 
           return {
@@ -93,6 +96,8 @@ export const useUserStore = create<UserState>()(
       setMood: (mood) => set((state) => ({
         stats: { ...state.stats, mood }
       })),
+
+      setLearningPath: (learningPath) => set({ learningPath }),
 
       completeLesson: (lessonId: string, category: string, skill?: string) => set((state) => {
         if (state.completedLessons.includes(lessonId)) return state;
@@ -138,6 +143,7 @@ export const useUserStore = create<UserState>()(
         name: 'Nova',
         traits: ['Curious', 'Warm', 'Inquisitive'],
         completedLessons: [],
+        learningPath: 'balanced',
         stats: { iq: 100, eq: 100, creativity: 100, skills: { mathematics: 0, visualArts: 0, socialLogic: 0, linguistics: 0 } },
       }),
 
@@ -150,6 +156,7 @@ export const useUserStore = create<UserState>()(
           name: 'Nova',
           traits: ['Curious', 'Warm', 'Inquisitive'],
           completedLessons: [],
+          learningPath: 'balanced',
           stats: { iq: 100, eq: 100, creativity: 100, skills: { mathematics: 0, visualArts: 0, socialLogic: 0, linguistics: 0 } },
         });
       },

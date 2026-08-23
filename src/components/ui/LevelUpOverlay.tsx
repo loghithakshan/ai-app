@@ -99,7 +99,7 @@ export default function LevelUpOverlay() {
             </motion.div>
 
             <motion.h2
-              className="font-clash text-5xl font-bold text-white mb-2 relative z-10"
+              className="type-title font-clash font-bold text-white mb-2 relative z-10"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}

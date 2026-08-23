@@ -73,7 +73,6 @@ export default function AmbientBackground() {
       />
 
       {/* Noise Texture */}
-      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] contrast-150 brightness-100" />
 
       {/* Reaction Overlay */}
       <AnimatePresence>

@@ -3,14 +3,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import BrainCanvas from "@/components/brain/BrainCanvas";
-import Sidebar from "@/components/dashboard/Sidebar";
 import ChatWindow from "@/components/chat/ChatWindow";
 import StatusHUD from "@/components/dashboard/StatusHUD";
 import CognitiveInsights from "@/components/dashboard/CognitiveInsights";
 import IntroSequence from "@/components/dashboard/IntroSequence";
-import AudioService from "@/services/audio.service";
 import { useUserStore } from "@/store/userStore";
 import { useChatStore } from "@/store/chatStore";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
 export default function DashboardPage() {
   const { name } = useUserStore();
@@ -32,6 +31,7 @@ export default function DashboardPage() {
     
     // Log the "Birth" memory shard
     try {
+      if (!isSupabaseConfigured) return;
       await fetch("/api/memories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -48,9 +48,7 @@ export default function DashboardPage() {
   if (!mounted) return <div className="h-screen w-screen bg-void" />;
 
   return (
-    <main className="flex h-screen w-screen bg-void text-text-primary overflow-hidden font-inter relative">
-      <AudioService />
-      
+    <main className="relative flex h-full min-h-0 w-full overflow-hidden bg-void font-inter text-text-primary">
       <AnimatePresence mode="wait">
         {showIntro && (
           <IntroSequence 
@@ -62,32 +60,29 @@ export default function DashboardPage() {
       </AnimatePresence>
 
       <motion.div 
-        className="flex w-full h-full"
+        className="flex h-full min-h-0 w-full flex-row"
         initial={{ opacity: 0 }}
         animate={{ opacity: showIntro ? 0 : 1 }}
         transition={{ duration: 1 }}
       >
-        {/* Left Sidebar - High Fidelity Navigation */}
-        <Sidebar />
-
         {/* Center: The Neural Command Center */}
-        <div className="flex-1 relative border-x border-surface-glow/20">
+        <div className="relative h-full min-h-0 min-w-0 flex-1 border-x border-surface-glow/20">
           <div className="absolute inset-0">
              <BrainCanvas />
           </div>
           
           {/* Floating HUD */}
-          <div className="absolute top-10 left-1/2 -translate-x-1/2 pointer-events-none z-30">
+          <div className="pointer-events-none absolute left-1/2 top-8 z-30 w-full -translate-x-1/2">
             <StatusHUD />
           </div>
 
           {/* Cognitive Telemetry */}
-          <div className="absolute top-1/2 -translate-y-1/2 left-10 z-30 pointer-events-none">
+          <div className="pointer-events-none absolute bottom-16 left-4 z-30">
              <CognitiveInsights />
           </div>
 
           {/* Perspective Indicator Overlay */}
-          <div className="absolute bottom-10 left-10 pointer-events-none z-30">
+          <div className="pointer-events-none absolute bottom-6 right-6 z-30">
              <motion.div 
                className="bg-surface/40 backdrop-blur-md border border-white/10 p-4 rounded-2xl flex items-center gap-4"
                initial={{ x: -50, opacity: 0 }}
@@ -101,7 +96,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right: Interaction Terminal */}
-        <aside className={`w-[420px] glass-morphism flex flex-col shrink-0 transition-all duration-500 ${isTyping ? 'animate-neural-surge border-accent-neural/40' : 'border-surface-glow/20'}`}>
+        <aside className={`flex h-full w-[420px] min-h-0 shrink-0 flex-col transition-all duration-500 ${isTyping ? 'animate-neural-surge border-accent-neural/40' : 'glass-morphism border-surface-glow/20'}`}>
           <ChatWindow />
         </aside>
       </motion.div>

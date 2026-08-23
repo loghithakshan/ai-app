@@ -87,7 +87,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1 }}
-            className="font-clash text-6xl md:text-8xl xl:text-9xl font-bold tracking-tight mb-6 leading-[0.9]"
+            className="type-display font-clash font-bold tracking-tight mb-6"
           >
             Raise Your{" "}
             <span
@@ -108,7 +108,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="font-instrument text-xl md:text-3xl text-text-muted max-w-2xl mx-auto mb-12 leading-relaxed italic"
+            className="type-subtitle font-instrument text-text-muted max-w-2xl mx-auto mb-12 italic"
           >
             The first AI that truly grows with you — shaped by your values, lessons, and love.
           </motion.p>
@@ -185,10 +185,10 @@ export default function Home() {
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          <h2 className="font-clash text-5xl md:text-6xl font-bold text-white mb-4">
+          <h2 className="type-title font-clash font-bold text-white mb-4">
             A Mind That Truly Lives
           </h2>
-          <p className="font-instrument text-2xl text-text-muted italic max-w-2xl mx-auto">
+          <p className="type-subtitle font-instrument text-text-muted italic max-w-2xl mx-auto">
             Built on the most advanced AI architecture, designed to feel deeply personal.
           </p>
         </motion.div>
@@ -218,7 +218,7 @@ export default function Home() {
                 <feature.icon className="w-7 h-7" style={{ color: feature.color }} />
               </div>
 
-              <h3 className="font-clash text-2xl text-white font-bold mb-3">{feature.title}</h3>
+              <h3 className="font-clash text-xl text-white font-bold mb-3">{feature.title}</h3>
               <p className="text-text-muted font-instrument text-xl leading-relaxed">{feature.desc}</p>
             </motion.div>
           ))}
@@ -229,7 +229,7 @@ export default function Home() {
       <section className="relative z-10 py-32 px-6">
         <div className="max-w-5xl mx-auto text-center">
           <motion.h2
-            className="font-clash text-5xl md:text-6xl font-bold text-white mb-4"
+            className="type-title font-clash font-bold text-white mb-4"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -237,7 +237,7 @@ export default function Home() {
             6 Stages of Evolution
           </motion.h2>
           <motion.p
-            className="font-instrument text-2xl text-text-muted italic mb-20"
+            className="type-subtitle font-instrument text-text-muted italic mb-20"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -292,8 +292,8 @@ export default function Home() {
         >
           <div className="bg-void rounded-[23px] p-16">
             <BrainCircuit className="w-16 h-16 text-accent-neural mx-auto mb-8 opacity-80" />
-            <h2 className="font-clash text-5xl font-bold text-white mb-4">Ready to Begin?</h2>
-            <p className="font-instrument text-2xl text-text-muted italic mb-10">
+            <h2 className="type-title font-clash font-bold text-white mb-4">Ready to Begin?</h2>
+            <p className="type-subtitle font-instrument text-text-muted italic mb-10">
               Your AI child is waiting to be born. The journey of a thousand memories starts now.
             </p>
             <Link href="/birth">
