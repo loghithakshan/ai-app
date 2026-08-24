@@ -1,0 +1,45 @@
+{
+  "name": "neurobloom-enterprise-test-automation",
+  "version": "2.0.0",
+  "description": "Production-ready Enterprise E2E Test Automation Framework for Web (Selenium WebDriver) and Mobile (Appium 2.x React Native/Android) with ExcelJS, Mochawesome, Winston, Dynamic Form Discovery, and GitHub Actions",
+  "main": "index.js",
+  "scripts": {
+    "test:web": "mocha --config .mocharc.json tests/selenium/**/*.spec.js",
+    "test:web:chrome": "CROSS_ENV BROWSER=chrome HEADLESS=true mocha --config .mocharc.json tests/selenium/**/*.spec.js",
+    "test:web:firefox": "CROSS_ENV BROWSER=firefox HEADLESS=true mocha --config .mocharc.json tests/selenium/**/*.spec.js",
+    "test:web:edge": "CROSS_ENV BROWSER=edge HEADLESS=true mocha --config .mocharc.json tests/selenium/**/*.spec.js",
+    "test:mobile": "mocha --config .mocharc.json tests/appium/**/*.spec.js",
+    "test:discover": "node utilities/dynamicTestDiscoverer.js",
+    "test:all": "npm run test:web && npm run test:mobile"
+  },
+  "keywords": [
+    "selenium",
+    "appium",
+    "react-native",
+    "nextjs",
+    "page-object-model",
+    "mocha",
+    "chai",
+    "exceljs",
+    "mochawesome",
+    "winston",
+    "github-actions"
+  ],
+  "author": "Senior QA Automation Architect",
+  "license": "MIT",
+  "dependencies": {
+    "appium": "^2.11.0",
+    "appium-uiautomator2-driver": "^3.7.0",
+    "chai": "^4.3.10",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "mocha": "^10.7.0",
+    "mochawesome": "^7.1.3",
+    "mochawesome-merge": "^4.3.0",
+    "mochawesome-report-generator": "^6.2.0",
+    "selenium-webdriver": "^4.23.0",
+    "webdriverio": "^8.39.0",
+    "winston": "^3.14.0"
+  }
+}

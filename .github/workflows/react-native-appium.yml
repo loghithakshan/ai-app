@@ -1,0 +1,67 @@
+name: React Native Appium 2.x Mobile CI/CD Pipeline
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  appium-android-e2e:
+    runs-on: macos-13
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 3. Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 4. Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 5. Install Appium 2.x & UiAutomator2 Driver
+        run: |
+          npm install -g appium@latest
+          appium driver install uiautomator2
+
+      - name: 6. Install Project & Test Dependencies
+        run: |
+          cd test-automation && npm ci --legacy-peer-deps
+
+      - name: 7. Start Appium Server in Background
+        run: |
+          appium --log appium.log &
+          sleep 5
+
+      - name: 8. Create & Run Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          profile: Pixel_6
+          script: |
+            adb devices
+            cd test-automation
+            npm run test:mobile
+
+      - name: 9. Upload Mobile E2E Artifacts (Excel Reports, Screenshots, Appium Logs)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: React-Native-Appium-E2E-Reports
+          path: |
+            test-automation/reports/
+            test-automation/logs/
+            test-automation/React_Native_E2E_Report.xlsx
+            appium.log

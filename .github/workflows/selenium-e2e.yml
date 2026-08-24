@@ -1,0 +1,63 @@
+name: Enterprise Selenium Web E2E Test Pipeline
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  selenium-web-e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chrome, firefox]
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 3. Install Dependencies
+        run: |
+          npm ci --legacy-peer-deps
+          cd test-automation && npm ci --legacy-peer-deps
+
+      - name: 4. Install Browsers (Chrome & Firefox)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable firefox
+
+      - name: 5. Start Next.js App in Background
+        run: |
+          npm run build
+          npm run start &
+          npx wait-on http://localhost:3000 -t 60000
+
+      - name: 6. Run Selenium E2E Web Tests
+        run: |
+          cd test-automation
+          npx cross-env BROWSER=${{ matrix.browser }} HEADLESS=true npm run test:web
+
+      - name: 7. Generate Dynamic AI Test Scenarios & Reports
+        if: always()
+        run: |
+          cd test-automation
+          npm run test:discover
+
+      - name: 8. Upload E2E Test Artifacts (Excel & HTML Reports, Screenshots, Logs)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Selenium-Web-E2E-Reports-${{ matrix.browser }}
+          path: |
+            test-automation/reports/
+            test-automation/logs/
+            test-automation/E2E_Report.xlsx
+            test-automation/Selenium_Web_E2E_Report.xlsx
