@@ -14,7 +14,8 @@ export const isSupabaseConfigured = Boolean(
   configuredSupabaseUrl &&
   configuredSupabaseAnonKey &&
   !configuredSupabaseUrl.startsWith('your_') &&
-  !configuredSupabaseAnonKey.startsWith('your_')
+  !configuredSupabaseAnonKey.startsWith('your_') &&
+  !configuredSupabaseAnonKey.includes('...')
 );
 
 let supabaseInstance: SupabaseClient<Database> | null = null;

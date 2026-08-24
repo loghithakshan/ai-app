@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 import ConditionalShell from "@/components/layout/ConditionalShell";
@@ -19,6 +19,14 @@ export const metadata: Metadata = {
     type: "website",
   },
 };
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+}
 
 import AmbientBackground from "@/components/layout/AmbientBackground";
 import AudioService from "@/services/audio.service";

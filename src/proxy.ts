@@ -12,7 +12,7 @@ export async function proxy(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   let hasSupabaseConfig = false;
 
-  if (supabaseUrl && supabaseAnonKey && !supabaseUrl.startsWith('your_') && !supabaseAnonKey.startsWith('your_')) {
+  if (supabaseUrl && supabaseAnonKey && !supabaseUrl.startsWith('your_') && !supabaseAnonKey.startsWith('your_') && !supabaseAnonKey.includes('...')) {
     try {
       hasSupabaseConfig = ['http:', 'https:'].includes(new URL(supabaseUrl).protocol);
     } catch {
