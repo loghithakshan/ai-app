@@ -1,5 +1,7 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { fetchApi } from '@/lib/api';
+import { secureStorage } from '@/lib/storage';
 
 export type MemoryNode = {
   id: string;
@@ -107,8 +109,7 @@ export const useMemoryStore = create<MemoryState>()(
 
       fetchMemoriesFromApi: async () => {
         try {
-          const res = await fetch('/api/memories');
-          if (!res.ok) return;
+          const res = await fetchApi('/api/memories');
           const data = await res.json();
           if (data.memories && Array.isArray(data.memories) && data.memories.length > 0) {
             get().setMemories(data.memories);
@@ -120,6 +121,7 @@ export const useMemoryStore = create<MemoryState>()(
     }),
     {
       name: 'neurobloom-memories',
+      storage: createJSONStorage(() => secureStorage),
     }
   )
 );

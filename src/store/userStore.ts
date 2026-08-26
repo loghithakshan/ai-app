@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { secureStorage } from '@/lib/storage';
 
 export type Stage = 'NEWBORN' | 'TODDLER' | 'CHILD' | 'TEEN' | 'YOUNG_ADULT' | 'MATURE';
 
@@ -192,7 +193,8 @@ export const useUserStore = create<UserState>()(
       },
     }),
     {
-      name: 'neurobloom-user', // persisted to localStorage
+      name: 'neurobloom-user',
+      storage: createJSONStorage(() => secureStorage),
     }
   )
 );

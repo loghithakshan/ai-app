@@ -14,6 +14,7 @@ import {
 import { useUserStore } from "@/store/userStore";
 import { useAudio } from "@/services/audio.service";
 import Link from "next/link";
+import { fetchApi } from "@/lib/api";
 
 type Lesson = {
   id: string;
@@ -114,9 +115,8 @@ export default function LessonsPage() {
     playPulse();
     
     try {
-      const response = await fetch("/api/lessons/generate", {
+      const response = await fetchApi("/api/lessons/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
           stage,

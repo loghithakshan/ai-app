@@ -2,6 +2,7 @@ const { expect } = require('chai');
 const { createWebDriver } = require('../../config/selenium.config');
 const DynamicTestDiscoverer = require('../../utilities/dynamicTestDiscoverer');
 const ExcelReporter = require('../../utilities/excelReporter');
+const env = require('../../config/env.config');
 
 describe('Selenium Web E2E: Smart AI Dynamic Route Navigation & Load Suite', function () {
   this.timeout(120000);
@@ -26,7 +27,7 @@ describe('Selenium Web E2E: Smart AI Dynamic Route Navigation & Load Suite', fun
   it('NAV-01: Auto-discovered routes should load cleanly without 404/500 errors', async function () {
     for (const route of routes) {
       reporter.logStep('Dynamic Route Discovery', `Navigating to ${route}`, 'STARTED');
-      await driver.get(`http://localhost:3000${route}`);
+      await driver.get(`${env.baseUrl}${route}`);
       await new Promise(r => setTimeout(r, 1000));
 
       const title = await driver.getTitle();

@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { useUserStore } from "@/store/userStore";
 import { useRouter } from "next/navigation";
+import { fetchApi } from "@/lib/api";
+import { dialogs } from "@/lib/dialogs";
 
 export default function SettingsPage() {
   const { name, setName, resetStore } = useUserStore();
@@ -222,10 +224,9 @@ export default function SettingsPage() {
                     setIsSaving(true);
                     try {
                       const amount = parseFloat(checkoutItem.price.replace('$', '').replace('/mo', ''));
-                      const response = await fetch('/api/checkout', {
+                      const response = await fetchApi('/api/checkout', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
+                        body: JSON.stringify({
                           title: checkoutItem.title, 
                           price: checkoutItem.price,
                           amount: amount
@@ -239,7 +240,7 @@ export default function SettingsPage() {
                       }
                     } catch (err) {
                       console.error(err);
-                      alert("Stripe Integration Error. Ensure STRIPE_SECRET_KEY is set in your environment.");
+                      dialogs.alert("Stripe Integration Error", "Ensure STRIPE_SECRET_KEY is set in your environment.");
                       setCheckoutItem(null);
                     } finally {
                       setIsSaving(false);

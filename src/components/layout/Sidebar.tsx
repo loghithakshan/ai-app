@@ -20,6 +20,7 @@ import {
 import { useUserStore } from "@/store/userStore";
 import { supabase } from "@/lib/supabase";
 import { User } from '@supabase/supabase-js';
+import { fetchApi } from "@/lib/api";
 
 const navItems = [
   { icon: LayoutDashboard, label: "Overview", href: "/dashboard" },
@@ -34,7 +35,7 @@ const emptySubscribe = () => () => {};
 const getClientSnapshot = () => true;
 const getServerSnapshot = () => false;
 
-export default function Sidebar() {
+export default function Sidebar({ closeSidebar }: { closeSidebar?: () => void }) {
   const pathname = usePathname();
   const { name, stage, level, xp, traits } = useUserStore();
   const mounted = useSyncExternalStore(emptySubscribe, getClientSnapshot, getServerSnapshot);
@@ -67,10 +68,11 @@ export default function Sidebar() {
     await supabase.auth.signOut();
     logout();
     router.push("/login");
+    if (closeSidebar) closeSidebar();
   };
 
   return (
-    <aside className="flex w-80 shrink-0 border-r border-surface-glow bg-void/80 p-6 z-20 flex-col overflow-y-auto custom-scrollbar">
+    <aside className="flex w-full lg:w-80 h-full shrink-0 border-r border-surface-glow bg-void/95 lg:bg-void/80 p-6 z-20 flex-col overflow-y-auto custom-scrollbar">
       {/* Brand / Logo Section */}
       <div className="flex items-center gap-3 mb-10 px-2">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-neural to-accent-synapse flex items-center justify-center shadow-lg shadow-accent-neural/20">
@@ -165,7 +167,7 @@ export default function Sidebar() {
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
-            <Link key={item.href} href={item.href}>
+            <Link key={item.href} href={item.href} onClick={() => closeSidebar?.()}>
               <motion.div 
                 className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all relative group overflow-hidden ${
                   isActive ? "text-white" : "text-text-muted hover:text-white"
@@ -213,7 +215,7 @@ export default function Sidebar() {
           </div>
         </div>
 
-        <Link href="/settings">
+        <Link href="/settings" onClick={() => closeSidebar?.()}>
           <motion.div
             className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all relative group ${
               pathname === "/settings" ? "text-white" : "text-text-muted hover:text-white"
@@ -236,9 +238,8 @@ export default function Sidebar() {
         <motion.div 
           onClick={async () => {
             try {
-              const res = await fetch("/api/checkout", {
+              const res = await fetchApi("/api/checkout", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                   title: "NeuroBloom Prime",
                   amount: 29.99,

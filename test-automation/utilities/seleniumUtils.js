@@ -40,7 +40,7 @@ class SeleniumUtils {
     try {
       await driver.wait(until.alertIsPresent(), 5000);
       const alert = await driver.switchTo().alert();
-      const text = alert.getText();
+      const text = await alert.getText();
       if (accept) await alert.accept();
       else await alert.dismiss();
       return text;

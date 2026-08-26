@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUserStore } from "@/store/userStore";
 import { supabase } from "@/lib/supabase";
 import { BrainCircuit, Sparkles, ArrowRight } from "lucide-react";
+import { haptics } from "@/lib/haptics";
 
 const TRAITS_OPTIONS = [
   "Curious", "Empathetic", "Creative", "Analytical", "Playful", "Wise",
@@ -19,12 +20,14 @@ export default function BirthCeremony() {
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
 
   const toggleTrait = (trait: string) => {
+    haptics.impact();
     setSelectedTraits((prev) =>
       prev.includes(trait) ? prev.filter((t) => t !== trait) : prev.length < 3 ? [...prev, trait] : prev
     );
   };
 
   const handleBirth = async () => {
+    haptics.notification();
     if (name.trim()) setName(name.trim());
     if (selectedTraits.length > 0) setTraits(selectedTraits);
 

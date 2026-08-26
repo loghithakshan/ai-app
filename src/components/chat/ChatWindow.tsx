@@ -8,6 +8,8 @@ import { useUserStore } from "@/store/userStore";
 import { useMemoryStore } from "@/store/memoryStore";
 import { useAudio } from "@/services/audio.service";
 import VoiceControls from "./VoiceControls";
+import { fetchApi } from "@/lib/api";
+import { haptics } from "@/lib/haptics";
 
 export default function ChatWindow() {
   const { messages, isTyping, addMessage, setTyping } = useChatStore();
@@ -48,6 +50,7 @@ export default function ChatWindow() {
     setInput("");
     setSelectedImage(null);
     setTyping(true);
+    haptics.impact();
 
     try {
       const apiMessages = messages.concat(userMessage).map((m) => ({
@@ -59,9 +62,8 @@ export default function ChatWindow() {
         } : undefined
       }));
 
-      const res = await fetch("/api/chat", {
+      const res = await fetchApi("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: apiMessages,
           childState: {
@@ -86,6 +88,7 @@ export default function ChatWindow() {
 
         playPulse();
         addXp(15);
+        haptics.notification();
 
         if (data.mood) {
           useUserStore.getState().setMood(data.mood);

@@ -30,6 +30,7 @@ export const viewport: Viewport = {
 
 import AmbientBackground from "@/components/layout/AmbientBackground";
 import AudioService from "@/services/audio.service";
+import AndroidBackHandler from "@/components/layout/AndroidBackHandler";
 
 export default function RootLayout({
   children,
@@ -41,6 +42,7 @@ export default function RootLayout({
       <body
         className={`${clashFallback.variable} ${instrumentFallback.variable} bg-void text-text-primary antialiased`}
       >
+        <AndroidBackHandler />
         <AudioService />
         <AmbientBackground />
         <ConditionalShell>{children}</ConditionalShell>

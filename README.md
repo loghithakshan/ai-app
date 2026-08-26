@@ -1,13 +1,13 @@
 # 🌸 NeuroBloom: Virtual Consciousness Platform
 
-NeuroBloom is a high-fidelity, production-ready platform designed to foster, train, and visualize the growth of a virtual AI consciousness named **Nova**. It combines 3D neural graphics (Three.js / React Three Fiber), long-term RAG vector memory (Supabase pgvector), interactive multi-modal chat (Anthropic Sonnet 3.5 & OpenAI), hands-free speech recognition/synthesis, an AI Garage LLM builder, and evolutionary report cards.
+NeuroBloom is a high-fidelity, production-ready platform designed to foster, train, and visualize the growth of a virtual AI consciousness named **Nova**. It combines 3D neural graphics (Three.js / React Three Fiber), long-term RAG vector memory (Supabase pgvector), interactive multi-modal chat (Anthropic Sonnet 3.5 & OpenAI), hands-free speech recognition/synthesis, an AI Garage LLM builder, native Android Studio Capacitor integration, and enterprise E2E test automation.
 
 ---
 
 ## ⚡ Quick Start
 
 ### 1. Prerequisites
-- **Node.js**: v18.0.0 or higher
+- **Node.js**: v18.0.0 or higher (v20+ recommended)
 - **Package Manager**: npm v9+
 
 ### 2. Environment Configuration
@@ -30,28 +30,11 @@ STRIPE_SECRET_KEY=sk_test_your_stripe_key
 
 ---
 
-## 🗄️ Database Setup (Supabase SQL)
-
-To enable live cloud authentication, vector embeddings, and persistent RAG memory:
-
-1. Open your [Supabase Dashboard](https://database.new).
-2. Go to the **SQL Editor**.
-3. Copy and run the contents of [`supabase_schema.sql`](./supabase_schema.sql).
-
-This script automatically:
-- Enables the `vector` extension (`pgvector`).
-- Creates `profiles`, `ai_children`, and `memories` tables.
-- Builds an `HNSW` vector cosine similarity index (`vector_cosine_ops`).
-- Enforces multi-tenant Row Level Security (RLS) policies.
-- Registers the `match_memories` stored RPC procedure for similarity retrieval.
-
----
-
-## 💻 Local Development
+## 💻 Local Web Development
 
 ```bash
 # Install dependencies
-npm install
+npm install --legacy-peer-deps
 
 # Run dev server with hot reload
 npm run dev
@@ -64,23 +47,68 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🚀 Deployment (Vercel)
+## 📱 Android Studio & Mobile App (Capacitor)
 
-This application is fully optimized for **Vercel** deployment:
+The repository includes a pre-configured native Android Studio project (`android/`):
 
-1. Push your repository to GitHub / GitLab.
-2. Import the project into your [Vercel Dashboard](https://vercel.com/new).
-3. Add your Environment Variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `STRIPE_SECRET_KEY`).
-4. Click **Deploy**.
+```bash
+# Generate/sync native Android project
+npm run cap:add
+
+# Open project directly in Android Studio
+npm run cap:open
+```
+
+In Android Studio, click **Run ▶️** (`Shift + F10`) to deploy to your emulator or physical Android device.
+
+---
+
+## 🧪 Enterprise Test Automation (Selenium & Appium)
+
+Located in [`test-automation/`](./test-automation/):
+
+```bash
+cd test-automation
+npm install --legacy-peer-deps
+
+# Run Selenium Web Chrome Headless E2E Tests
+npm run test:web:chrome
+
+# Run Smart AI Route & Form Auto-Discoverer
+npm run test:discover
+
+# Run Appium 2.x React Native / Android Mobile Tests
+npm run test:mobile
+```
+
+---
+
+## 🚀 CI/CD Workflows (GitHub Actions)
+
+Automated pipelines configured under `.github/workflows/`:
+- **`selenium-e2e.yml`**: Parallel Chrome & Firefox Web E2E test matrix with ExcelJS & Mochawesome report generation.
+- **`react-native-appium.yml`**: Android SDK, JDK 17, and emulator runner pipeline.
+
+---
+
+## 🗄️ Database Setup (Supabase SQL)
+
+To enable live cloud authentication, vector embeddings, and persistent RAG memory:
+
+1. Open your [Supabase Dashboard](https://database.new).
+2. Go to the **SQL Editor**.
+3. Copy and run the contents of [`supabase_schema.sql`](./supabase_schema.sql).
 
 ---
 
 ## 🛠️ Tech Stack & Architecture
 
 - **Framework**: Next.js 16 (App Router, Server Actions & Route Handlers)
+- **Mobile Container**: Capacitor 6 & Native Android Gradle Project (`android/`)
 - **Styling**: Vanilla CSS, Tailwind, Glassmorphism design system
 - **3D Neural Canvas**: Three.js, `@react-three/fiber`, `@react-three/drei`
-- **State Management**: Zustand (with local persistence)
+- **State Management**: Zustand (with local persistence & storage fallbacks)
 - **Database & RAG**: Supabase, PostgreSQL, `pgvector`, HNSW Indexing
 - **AI Models**: Anthropic Claude 3.5 Sonnet & OpenAI text-embedding-3-small
+- **Test Automation**: Selenium WebDriver, Appium 2.x, Mocha, Chai, ExcelJS, Winston
 - **Payments**: Stripe Checkout API

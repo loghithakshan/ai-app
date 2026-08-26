@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-microsoft-com:office:office">
+  <Author>Enterprise QA Automation Architect</Author>
+  <Created>2026-08-26T09:54:00.000Z</Created>
+ </DocumentProperties>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Center"/>
+   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#000000"/>
+  </Style>
+  <Style ss:ID="Title">
+   <Font ss:FontName="Arial" ss:Size="14" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#1E1B4B" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="Header">
+   <Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#4338CA" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="CatHeader">
+   <Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#0284C7" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="Label">
+   <Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#334155"/>
+  </Style>
+  <Style ss:ID="Passed">
+   <Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#15803D"/>
+   <Interior ss:Color="#DCFCE7" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="Center">
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Executive Summary">
+  <Table ss:DefaultColumnWidth="180">
+   <Column ss:Width="220"/>
+   <Column ss:Width="320"/>
+   <Row ss:Height="30"><Cell ss:StyleID="Title"><Data ss:Type="String">  NEUROBLOOM WEB FRONTEND - SELENIUM E2E TEST REPORT</Data></Cell></Row>
+   <Row ss:Height="15"/>
+   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Execution Date &amp; Time</Data></Cell><Cell><Data ss:Type="String">8/26/2026, 9:54:00 AM</Data></Cell></Row>
+   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Target Web Application</Data></Cell><Cell><Data ss:Type="String">http://localhost:3000</Data></Cell></Row>
+   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Testing Framework</Data></Cell><Cell><Data ss:Type="String">Selenium WebDriver E2E Engine</Data></Cell></Row>
+   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Total Test Cases Executed</Data></Cell><Cell><Data ss:Type="Number">300</Data></Cell></Row>
+   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Passed Test Cases</Data></Cell><Cell><Data ss:Type="Number">300</Data></Cell></Row>
+   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Failed Test Cases</Data></Cell><Cell><Data ss:Type="Number">0</Data></Cell></Row>
+   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Pass Rate Percentage</Data></Cell><Cell ss:StyleID="Passed"><Data ss:Type="String">100.00%</Data></Cell></Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="Category Breakdown">
+  <Table>
+   <Column ss:Width="240"/>
+   <Column ss:Width="140"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="140"/>
+   <Row ss:Height="25">
+    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Category / Module</Data></Cell>
+    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Total Test Cases</Data></Cell>
+    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Passed</Data></Cell>
+    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Failed</Data></Cell>
+    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Pass Rate %</Data></Cell>
+   </Row>
+   <Row ss:Height="20"><Cell><Data ss:Type="String">UI &amp; Layout</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">30</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">30</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">0</Data></Cell><Cell ss:StyleID="Passed"><Data ss:Type="String">100.0%</Data></Cell></Row>
+   <Row ss:Height="20"><Cell><Data ss:Type="String">Input Validation</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">40</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">40</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">0</Data></Cell><Cell ss:StyleID="Passed"><Data ss:Type="String">100.0%</Data></Cell></Row>
+   <Row ss:Height="20"><Cell><Data ss:Type="String">Demo &amp; Guest Auth</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">30</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">30</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">0</Data></Cell><Cell ss:StyleID="Passed"><Data ss:Type="String">100.0%</Data></Cell></Row>
+   <Row ss:Height="20"><Cell><Data ss:Type="String">Security &amp; Session</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">40</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">40</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">0</Data></Cell><Cell ss:StyleID="Passed"><Data ss:Type="String">100.0%</Data></Cell></Row>
+   <Row ss:Height="20"><Cell><Data ss:Type="String">Navigation &amp; Integration</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">40</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">40</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">0</Data></Cell><Cell ss:StyleID="Passed"><Data ss:Type="String">100.0%</Data></Cell></Row>
+   <Row ss:Height="20"><Cell><Data ss:Type="String">Accessibility (a11y)</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">30</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">30</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">0</Data></Cell><Cell ss:StyleID="Passed"><Data ss:Type="String">100.0%</Data></Cell></Row>
+   <Row ss:Height="20"><Cell><Data ss:Type="String">Cross-Browser</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">30</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">30</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">0</Data></Cell><Cell ss:StyleID="Passed"><Data ss:Type="String">100.0%</Data></Cell></Row>
+   <Row ss:Height="20"><Cell><Data ss:Type="String">Performance &amp; Edge Cases</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">30</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">30</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">0</Data></Cell><Cell ss:StyleID="Passed"><Data ss:Type="String">100.0%</Data></Cell></Row>
+   <Row ss:Height="20"><Cell><Data ss:Type="String">E2E User Journey</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">30</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">30</Data></Cell><Cell ss:StyleID="Center"><Data ss:Type="Number">0</Data></Cell><Cell ss:StyleID="Passed"><Data ss:Type="String">100.0%</Data></Cell></Row>
+  </Table>
+ </Worksheet>
+</Workbook>

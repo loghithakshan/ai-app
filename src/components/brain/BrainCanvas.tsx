@@ -22,6 +22,7 @@ import { useUserStore } from "@/store/userStore";
 import { useChatStore } from '@/store/chatStore';
 import { useMemoryStore } from "@/store/memoryStore";
 import { NeuralFog } from "./NeuralFog";
+import { useIsMobile } from "@/lib/hooks/useIsMobile";
 
 type MemoryNode = {
   id: string;
@@ -409,6 +410,7 @@ function SceneController({
 export default function BrainCanvas() {
   const { stage, stats } = useUserStore();
   const { isTyping } = useChatStore();
+  const isMobile = useIsMobile();
   const [selectedNode, setSelectedNode] = useState<MemoryNode | null>(null);
   const [isInside, setIsInside] = useState(false);
   const [lastActivity, setLastActivity] = useState(() => Date.now());
@@ -488,7 +490,7 @@ export default function BrainCanvas() {
         }}
       />
 
-      <Canvas dpr={[1, 2]}>
+      <Canvas dpr={isMobile ? [1, 1.5] : [1, 2]}>
         <SceneController
           groupRef={groupRef}
           controlsRef={controlsRef}
