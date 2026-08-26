@@ -20,6 +20,7 @@ class DynamicTestDiscoverer {
     const scanDirectory = (dir, routePath = '') => {
       const items = fs.readdirSync(dir);
       items.forEach(item => {
+        if (item === 'node_modules' || item.startsWith('.')) return;
         const fullPath = path.join(dir, item);
         const stat = fs.statSync(fullPath);
 
@@ -92,6 +93,7 @@ if (require.main === module) {
   const discoverer = new DynamicTestDiscoverer();
   const res = discoverer.discoverRoutesAndForms();
   console.log('AUTO-DISCOVERED ROUTES & FORMS SUMMARY:', JSON.stringify(res, null, 2));
+  process.exit(0);
 }
 
 module.exports = DynamicTestDiscoverer;

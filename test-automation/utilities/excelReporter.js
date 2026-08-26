@@ -1,4 +1,10 @@
-const ExcelJS = require('exceljs');
+let ExcelJS;
+try {
+  ExcelJS = require('exceljs');
+} catch {
+  ExcelJS = null;
+}
+
 const path = require('path');
 const fs = require('fs');
 const logger = require('./logger');
@@ -49,6 +55,11 @@ class ExcelReporter {
   async generateReport(envOrDevice = 'Chrome / Android 13') {
     if (!fs.existsSync(this.reportDir)) {
       fs.mkdirSync(this.reportDir, { recursive: true });
+    }
+
+    if (!ExcelJS) {
+      logger.warn('ExcelJS module unavailable. Skipping XLSX file generation.');
+      return;
     }
 
     const workbook = new ExcelJS.Workbook();

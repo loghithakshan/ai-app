@@ -9,8 +9,8 @@ export const secureStorage: StateStorage = {
       return localStorage.getItem(name);
     }
     try {
-      const { Storage } = await import('@capacitor-community/secure-storage');
-      const { value } = await Storage.get({ key: name });
+      const { SecureStoragePlugin } = await import('capacitor-secure-storage-plugin');
+      const { value } = await SecureStoragePlugin.get({ key: name });
       return value;
     } catch {
       return localStorage.getItem(name);
@@ -23,8 +23,8 @@ export const secureStorage: StateStorage = {
       return;
     }
     try {
-      const { Storage } = await import('@capacitor-community/secure-storage');
-      await Storage.set({ key: name, value });
+      const { SecureStoragePlugin } = await import('capacitor-secure-storage-plugin');
+      await SecureStoragePlugin.set({ key: name, value });
     } catch {
       localStorage.setItem(name, value);
     }
@@ -36,10 +36,10 @@ export const secureStorage: StateStorage = {
       return;
     }
     try {
-      const { Storage } = await import('@capacitor-community/secure-storage');
-      await Storage.remove({ key: name });
+      const { SecureStoragePlugin } = await import('capacitor-secure-storage-plugin');
+      await SecureStoragePlugin.remove({ key: name });
     } catch {
-      localStorage.removeItem(name, value);
+      localStorage.removeItem(name);
     }
   },
 };
