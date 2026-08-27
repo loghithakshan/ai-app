@@ -33,7 +33,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
           NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder"
         run: |
-          (npm run build && npm run start -p 3000 &) || (npx next dev -p 3000 &)
+          npx next dev -H 127.0.0.1 -p 3000 &
           npx wait-on http://localhost:3000 -t 60000 || echo "Web server ready"
 
       - name: 5. Execute 300 Test Case E2E Suite & Generate Excel Reports

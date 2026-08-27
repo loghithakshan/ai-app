@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
-
 export async function GET() {
   const { MemoryService } = await import("@/services/memory.service");
   const { supabase } = await import("@/lib/supabase");

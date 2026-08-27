@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
-
 export async function POST(req: Request) {
   const { AIService } = await import("@/services/ai.service");
   const { MemoryService } = await import("@/services/memory.service");
@@ -12,14 +10,8 @@ export async function POST(req: Request) {
   try {
     const { messages, childState } = await req.json();
 
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json(
-        { error: 'Anthropic API key not configured' },
-        { status: 500 }
-      );
-    }
-
     // 1. Get last user message for RAG
+
     const lastUserMessage = messages
       .filter((m: { role: string }) => m.role === "user")
       .pop()?.content || "";
