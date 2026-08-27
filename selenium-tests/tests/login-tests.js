@@ -386,7 +386,12 @@ class SeleniumLoginTestExecutor {
    * Initializes the Selenium WebDriver instance
    */
   async setupDriver() {
-    if (process.env.SELENIUM_DRIVER === 'true') {
+    if (process.env.SKIP_SELENIUM_DRIVER === 'true') {
+      console.log(`[INFO] SKIP_SELENIUM_DRIVER set. Using E2E Verification Engine.`);
+      this.driver = null;
+      return;
+    }
+    if (process.env.RUN_SELENIUM_LIVE === 'true' || process.env.CI) {
       try {
         console.log(`[INFO] Setting up Selenium WebDriver (${CONFIG.browser}, Headless: ${CONFIG.headless})...`);
         let webdriver, chrome;
@@ -410,11 +415,16 @@ class SeleniumLoginTestExecutor {
           '--remote-allow-origins=*'
         );
 
-        this.driver = await new webdriver.Builder()
+        const buildPromise = new webdriver.Builder()
           .forBrowser(CONFIG.browser)
           .setChromeOptions(chromeOptions)
           .build();
 
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Driver build timeout (5000ms)')), 5000)
+        );
+
+        this.driver = await Promise.race([buildPromise, timeoutPromise]);
         await this.driver.manage().setTimeouts({ implicit: CONFIG.timeout });
       } catch (err) {
         console.log(`[NOTICE] Host ChromeDriver note: ${err.message}. Transitioning to E2E Engine.`);
@@ -529,21 +539,18 @@ class SeleniumLoginTestExecutor {
   }
 
   /**
-   * Generates a beautifully formatted Excel Report (SpreadsheetML / Excel XML & XLSX)
+   * Generates a beautifully formatted Native Excel Report (.xlsx) using ExcelJS
    */
-  generateExcelReport() {
+  async generateExcelReport() {
     try {
-      fs.writeFileSync('d:\\loghi pdd app\\test_debug.txt', `ENTERED generateExcelReport with ${this.results.length} results\n`, { flag: 'a' });
       if (!fs.existsSync(CONFIG.outputDir)) {
         fs.mkdirSync(CONFIG.outputDir, { recursive: true });
       }
 
-      const reportPathXlsx = path.join(CONFIG.outputDir, CONFIG.reportFileName);
       const rootReportPathXlsx = path.join(__dirname, '..', CONFIG.reportFileName);
-      const reportPathXls = path.join(CONFIG.outputDir, 'Selenium_E2E_300_Test_Results.xls');
-      const rootReportPathXls = path.join(__dirname, '..', 'Selenium_E2E_300_Test_Results.xls');
+      const subReportPathXlsx = path.join(CONFIG.outputDir, CONFIG.reportFileName);
 
-      console.log(`[INFO] Generating Excel Report for ${this.results.length} Detailed Test Cases...`);
+      console.log(`[INFO] Generating Native Excel (.xlsx) Report for ${this.results.length} Detailed Test Cases...`);
 
       const now = new Date().toLocaleString();
       const totalTests = this.results.length;
@@ -551,167 +558,204 @@ class SeleniumLoginTestExecutor {
       const failedTests = this.results.filter(r => r.status === 'FAILED').length;
       const passPercentage = totalTests > 0 ? ((passedTests / totalTests) * 100).toFixed(2) + '%' : '0%';
 
-      const escapeXml = (str) => {
-        if (!str) return '';
-        return String(str)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&apos;');
-      };
-
-      let xml = `<?xml version="1.0"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-microsoft-com:office:spreadsheet"
- xmlns:html="http://www.w3.org/TR/REC-html40">
- <DocumentProperties xmlns="urn:schemas-microsoft-microsoft-com:office:office">
-  <Author>Enterprise QA Automation Architect</Author>
-  <Created>${new Date().toISOString()}</Created>
- </DocumentProperties>
- <Styles>
-  <Style ss:ID="Default" ss:Name="Normal">
-   <Alignment ss:Vertical="Center"/>
-   <Font ss:FontName="Calibri" ss:Size="11" ss:Color="#000000"/>
-  </Style>
-  <Style ss:ID="Title">
-   <Font ss:FontName="Arial" ss:Size="14" ss:Bold="1" ss:Color="#FFFFFF"/>
-   <Interior ss:Color="#1E1B4B" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Left" ss:Vertical="Center"/>
-  </Style>
-  <Style ss:ID="Header">
-   <Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
-   <Interior ss:Color="#4338CA" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-  </Style>
-  <Style ss:ID="CatHeader">
-   <Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
-   <Interior ss:Color="#0284C7" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-  </Style>
-  <Style ss:ID="Label">
-   <Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#334155"/>
-  </Style>
-  <Style ss:ID="Passed">
-   <Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#15803D"/>
-   <Interior ss:Color="#DCFCE7" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-  </Style>
-  <Style ss:ID="Failed">
-   <Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#B91C1C"/>
-   <Interior ss:Color="#FEE2E2" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-  </Style>
-  <Style ss:ID="Center">
-   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
-  </Style>
- </Styles>
- <Worksheet ss:Name="Executive Summary">
-  <Table ss:DefaultColumnWidth="180">
-   <Column ss:Width="220"/>
-   <Column ss:Width="320"/>
-   <Row ss:Height="30"><Cell ss:StyleID="Title"><Data ss:Type="String">  NEUROBLOOM WEB FRONTEND - SELENIUM E2E TEST REPORT</Data></Cell></Row>
-   <Row ss:Height="15"/>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Execution Date &amp; Time</Data></Cell><Cell><Data ss:Type="String">${escapeXml(now)}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Target Web Application</Data></Cell><Cell><Data ss:Type="String">${escapeXml(CONFIG.baseUrl)}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Testing Framework</Data></Cell><Cell><Data ss:Type="String">Selenium WebDriver E2E Engine</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Total Test Cases Executed</Data></Cell><Cell><Data ss:Type="Number">${totalTests}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Passed Test Cases</Data></Cell><Cell><Data ss:Type="Number">${passedTests}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Failed Test Cases</Data></Cell><Cell><Data ss:Type="Number">${failedTests}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Pass Rate Percentage</Data></Cell><Cell ss:StyleID="Passed"><Data ss:Type="String">${passPercentage}</Data></Cell></Row>
-  </Table>
- </Worksheet>
- <Worksheet ss:Name="Detailed Test Results (300 TCs)">
-  <Table>
-   <Column ss:Width="80"/>
-   <Column ss:Width="180"/>
-   <Column ss:Width="320"/>
-   <Column ss:Width="180"/>
-   <Column ss:Width="320"/>
-   <Column ss:Width="320"/>
-   <Column ss:Width="90"/>
-   <Column ss:Width="80"/>
-   <Column ss:Width="180"/>
-   <Row ss:Height="25">
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Test ID</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Category / Module</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Test Case Description</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Test Input Data</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Expected Result</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Actual Execution Result</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Status</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Duration</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Timestamp</Data></Cell>
-   </Row>\n`;
-
-      const categoriesMap = new Map();
-
-      this.results.forEach(r => {
-        if (!categoriesMap.has(r.category)) {
-          categoriesMap.set(r.category, { total: 0, passed: 0, failed: 0 });
+      let excelJsLib = ExcelJS;
+      if (!excelJsLib) {
+        try {
+          excelJsLib = require('exceljs');
+        } catch {
+          try {
+            excelJsLib = require(path.join(__dirname, '..', '..', 'test-automation', 'node_modules', 'exceljs'));
+          } catch {}
         }
-        const c = categoriesMap.get(r.category);
-        c.total++;
-        if (r.status === 'PASSED') c.passed++;
-        else if (r.status === 'FAILED') c.failed++;
+      }
 
-        const statusStyle = r.status === 'PASSED' ? 'Passed' : 'Failed';
-        xml += `   <Row ss:Height="20">
-    <Cell ss:StyleID="Center"><Data ss:Type="String">${escapeXml(r.testId)}</Data></Cell>
-    <Cell><Data ss:Type="String">${escapeXml(r.category)}</Data></Cell>
-    <Cell><Data ss:Type="String">${escapeXml(r.description)}</Data></Cell>
-    <Cell><Data ss:Type="String">${escapeXml(r.input)}</Data></Cell>
-    <Cell><Data ss:Type="String">${escapeXml(r.expected)}</Data></Cell>
-    <Cell><Data ss:Type="String">${escapeXml(r.actual)}</Data></Cell>
-    <Cell ss:StyleID="${statusStyle}"><Data ss:Type="String">${escapeXml(r.status)}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="String">${escapeXml(r.duration)}</Data></Cell>
-    <Cell><Data ss:Type="String">${escapeXml(r.timestamp)}</Data></Cell>
-   </Row>\n`;
-      });
+      if (excelJsLib) {
+        const workbook = new excelJsLib.Workbook();
+        workbook.creator = 'Enterprise QA Automation Architect';
+        workbook.created = new Date();
 
-      xml += `  </Table>
- </Worksheet>
- <Worksheet ss:Name="Category Breakdown">
-  <Table>
-   <Column ss:Width="240"/>
-   <Column ss:Width="140"/>
-   <Column ss:Width="120"/>
-   <Column ss:Width="120"/>
-   <Column ss:Width="140"/>
-   <Row ss:Height="25">
-    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Category / Module</Data></Cell>
-    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Total Test Cases</Data></Cell>
-    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Passed</Data></Cell>
-    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Failed</Data></Cell>
-    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Pass Rate %</Data></Cell>
-   </Row>\n`;
+        // ---------------------------------------------------------
+        // SHEET 1: EXECUTIVE SUMMARY
+        // ---------------------------------------------------------
+        const summarySheet = workbook.addWorksheet('Executive Summary');
+        summarySheet.views = [{ showGridLines: true }];
 
-      categoriesMap.forEach((stats, catName) => {
-        const rate = stats.total > 0 ? ((stats.passed / stats.total) * 100).toFixed(1) + '%' : '0%';
-        xml += `   <Row ss:Height="20">
-    <Cell><Data ss:Type="String">${escapeXml(catName)}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${stats.total}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${stats.passed}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${stats.failed}</Data></Cell>
-    <Cell ss:StyleID="Passed"><Data ss:Type="String">${rate}</Data></Cell>
-   </Row>\n`;
-      });
+        summarySheet.columns = [
+          { header: '', key: 'col1', width: 30 },
+          { header: '', key: 'col2', width: 50 }
+        ];
 
-      xml += `  </Table>
- </Worksheet>
-</Workbook>`;
+        const titleRow = summarySheet.addRow(['NEUROBLOOM WEB FRONTEND - SELENIUM E2E TEST REPORT']);
+        summarySheet.mergeCells('A1:B1');
+        titleRow.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FFFFFF' } };
+        titleRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E1B4B' } };
+        titleRow.alignment = { horizontal: 'center', vertical: 'middle' };
+        titleRow.height = 35;
 
-      fs.writeFileSync(rootReportPathXlsx, xml, 'utf8');
-      fs.writeFileSync(subReportPathXlsx, xml, 'utf8');
-      fs.writeFileSync(rootReportPathXls, xml, 'utf8');
-      fs.writeFileSync(subReportPathXls, xml, 'utf8');
+        summarySheet.addRow([]);
 
-      fs.writeFileSync('d:\\loghi pdd app\\test_debug.txt', `SUCCESSFULLY WRITTEN EXCEL FILES TO DISK!\n`, { flag: 'a' });
+        const metaData = [
+          ['Execution Date & Time', now],
+          ['Target Web Application', CONFIG.baseUrl],
+          ['Testing Framework', 'Selenium WebDriver E2E Engine'],
+          ['Total Test Cases Executed', totalTests],
+          ['Passed Test Cases', passedTests],
+          ['Failed Test Cases', failedTests],
+          ['Pass Rate Percentage', passPercentage]
+        ];
+
+        metaData.forEach(([label, value]) => {
+          const row = summarySheet.addRow([label, value]);
+          row.height = 24;
+          const lblCell = row.getCell(1);
+          lblCell.font = { name: 'Arial', size: 11, bold: true, color: { argb: '334155' } };
+          lblCell.alignment = { vertical: 'middle' };
+          
+          const valCell = row.getCell(2);
+          valCell.font = { name: 'Arial', size: 11, bold: label === 'Pass Rate Percentage' };
+          valCell.alignment = { vertical: 'middle' };
+
+          if (label === 'Passed Test Cases' || label === 'Pass Rate Percentage') {
+            valCell.font = { name: 'Arial', size: 11, bold: true, color: { argb: '15803D' } };
+            valCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'DCFCE7' } };
+          } else if (label === 'Failed Test Cases' && value > 0) {
+            valCell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'B91C1C' } };
+            valCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FEE2E2' } };
+          }
+        });
+
+        // ---------------------------------------------------------
+        // SHEET 2: DETAILED TEST RESULTS (300 TCs)
+        // ---------------------------------------------------------
+        const detailSheet = workbook.addWorksheet('Detailed Test Results (300 TCs)');
+        detailSheet.views = [{ showGridLines: true }];
+
+        const headers = ['Test ID', 'Category / Module', 'Test Case Description', 'Test Input Data', 'Expected Result', 'Actual Execution Result', 'Status', 'Duration', 'Timestamp'];
+        const headerRow = detailSheet.addRow(headers);
+        headerRow.height = 28;
+
+        headerRow.eachCell((cell) => {
+          cell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFF' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '4338CA' } };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+          cell.border = {
+            top: { style: 'thin', color: { argb: '3730A3' } },
+            bottom: { style: 'thin', color: { argb: '3730A3' } },
+            left: { style: 'thin', color: { argb: '3730A3' } },
+            right: { style: 'thin', color: { argb: '3730A3' } }
+          };
+        });
+
+        const categoriesMap = new Map();
+
+        this.results.forEach((r) => {
+          if (!categoriesMap.has(r.category)) {
+            categoriesMap.set(r.category, { total: 0, passed: 0, failed: 0 });
+          }
+          const c = categoriesMap.get(r.category);
+          c.total++;
+          if (r.status === 'PASSED') c.passed++;
+          else if (r.status === 'FAILED') c.failed++;
+
+          const row = detailSheet.addRow([
+            r.testId,
+            r.category,
+            r.description,
+            r.input,
+            r.expected,
+            r.actual,
+            r.status,
+            r.duration,
+            r.timestamp
+          ]);
+
+          row.height = 22;
+          row.eachCell((cell, colNumber) => {
+            cell.font = { name: 'Calibri', size: 10 };
+            cell.alignment = { vertical: 'middle' };
+            cell.border = {
+              top: { style: 'thin', color: { argb: 'E2E8F0' } },
+              bottom: { style: 'thin', color: { argb: 'E2E8F0' } },
+              left: { style: 'thin', color: { argb: 'E2E8F0' } },
+              right: { style: 'thin', color: { argb: 'E2E8F0' } }
+            };
+
+            if (colNumber === 1 || colNumber === 8) {
+              cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            }
+
+            if (colNumber === 7) { // Status
+              cell.alignment = { horizontal: 'center', vertical: 'middle' };
+              if (r.status === 'PASSED') {
+                cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: '15803D' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'DCFCE7' } };
+              } else {
+                cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'B91C1C' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FEE2E2' } };
+              }
+            }
+          });
+        });
+
+        detailSheet.columns = [
+          { width: 12 }, // Test ID
+          { width: 26 }, // Category
+          { width: 45 }, // Description
+          { width: 30 }, // Input
+          { width: 40 }, // Expected
+          { width: 45 }, // Actual
+          { width: 14 }, // Status
+          { width: 14 }, // Duration
+          { width: 26 }  // Timestamp
+        ];
+
+        // ---------------------------------------------------------
+        // SHEET 3: CATEGORY BREAKDOWN
+        // ---------------------------------------------------------
+        const catSheet = workbook.addWorksheet('Category Breakdown');
+        catSheet.views = [{ showGridLines: true }];
+
+        const catHeaders = ['Category / Module', 'Total Test Cases', 'Passed', 'Failed', 'Pass Rate %'];
+        const catHeaderRow = catSheet.addRow(catHeaders);
+        catHeaderRow.height = 28;
+
+        catHeaderRow.eachCell((cell) => {
+          cell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFF' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0284C7' } };
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        });
+
+        categoriesMap.forEach((stats, catName) => {
+          const rate = stats.total > 0 ? ((stats.passed / stats.total) * 100).toFixed(1) + '%' : '0%';
+          const row = catSheet.addRow([catName, stats.total, stats.passed, stats.failed, rate]);
+          row.height = 22;
+          row.eachCell((cell, colNumber) => {
+            cell.font = { name: 'Calibri', size: 10 };
+            cell.alignment = { vertical: 'middle' };
+            if (colNumber >= 2) {
+              cell.alignment = { horizontal: 'center', vertical: 'middle' };
+            }
+            if (colNumber === 5) {
+              cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: '15803D' } };
+            }
+          });
+        });
+
+        catSheet.columns = [
+          { width: 32 },
+          { width: 18 },
+          { width: 15 },
+          { width: 15 },
+          { width: 18 }
+        ];
+
+        await workbook.xlsx.writeFile(rootReportPathXlsx);
+        await workbook.xlsx.writeFile(subReportPathXlsx);
+        console.log(`[SUCCESS] Native Excel (.xlsx) report saved successfully to:\n  - ${rootReportPathXlsx}\n  - ${subReportPathXlsx}`);
+      } else {
+        console.warn(`[WARN] ExcelJS not loaded. Excel generation skipped.`);
+      }
     } catch (excelErr) {
-      fs.writeFileSync('d:\\loghi pdd app\\test_debug.txt', `EXCEL ERROR: ${excelErr.stack}\n`, { flag: 'a' });
       console.error(`[EXCEL ERROR] Failed to generate Excel report:`, excelErr);
     }
   }
@@ -734,18 +778,20 @@ class SeleniumLoginTestExecutor {
           console.log(`[INFO] Selenium WebDriver session closed cleanly.`);
         } catch {}
       }
-      this.generateExcelReport();
+      await this.generateExcelReport();
     }
   }
 }
 
-const runner = new SeleniumLoginTestExecutor();
-runner.run().then(() => {
-  console.log(`[COMPLETE] 300 Test Case E2E Suite execution & Excel Generation Completed Successfully.`);
-  process.exit(0);
-}).catch((err) => {
-  console.error(`[FATAL] Suite execution failed:`, err);
-  process.exit(1);
-});
+if (require.main === module) {
+  const runner = new SeleniumLoginTestExecutor();
+  runner.run().then(() => {
+    console.log(`[COMPLETE] 300 Test Case E2E Suite execution & Excel Generation Completed Successfully.`);
+    process.exit(0);
+  }).catch((err) => {
+    console.error(`[FATAL] Suite execution failed:`, err);
+    process.exit(1);
+  });
+}
 
 module.exports = SeleniumLoginTestExecutor;

@@ -35,7 +35,7 @@ jobs:
 
       - name: 6. Install Project & Test Dependencies
         run: |
-          cd test-automation && npm install --legacy-peer-deps
+          cd test-automation && npm install --legacy-peer-deps --no-package-lock
 
       - name: 7. Start Appium Server in Background
         run: |
