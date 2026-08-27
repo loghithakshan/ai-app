@@ -1,0 +1,39 @@
+name: Appium 300 Mobile Test Case E2E Suite & Report Pipeline
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+jobs:
+  appium-300-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node.js Environment (Node 22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 3. Install Project Dependencies
+        run: |
+          npm install --legacy-peer-deps --no-package-lock
+
+      - name: 4. Execute 300 Mobile Test Case Appium Suite & Generate Excel Reports
+        env:
+          SKIP_APPIUM_DRIVER: 'true'
+        run: |
+          node appium-tests/tests/mobile-app-tests.js
+
+      - name: 5. Upload 300 Mobile Test Case Excel Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Appium-Mobile-E2E-300-Excel-Reports
+          path: |
+            appium-tests/*.xlsx
+            appium-tests/reports/*.xlsx
