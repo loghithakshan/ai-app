@@ -1,10 +1,6 @@
-name: React Native Appium 2.x Mobile CI/CD Pipeline
+name: React Native Appium 2.x Mobile CI/CD Pipeline (Legacy Emulator)
 
 on:
-  push:
-    branches: [ master, main ]
-  pull_request:
-    branches: [ master, main ]
   workflow_dispatch:
 
 jobs:
