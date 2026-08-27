@@ -27,6 +27,13 @@ export class MemoryService {
    * Generates a vector embedding for a given text using OpenAI.
    */
   private async generateEmbedding(text: string): Promise<number[]> {
+    const apiKey = process.env.OPENAI_API_KEY;
+    const isKeyConfigured = Boolean(apiKey && !apiKey.includes('...') && !apiKey.startsWith('your_'));
+
+    if (!isKeyConfigured) {
+      return new Array(1536).fill(0);
+    }
+
     try {
       const response = await getOpenAI().embeddings.create({
         model: "text-embedding-3-small",
@@ -34,10 +41,11 @@ export class MemoryService {
       });
       return response.data[0].embedding;
     } catch (error) {
-      console.error("Embedding generation failed:", error);
-      throw error;
+      console.warn("[MemoryService] Embedding generation failed via OpenAI API, using zero-vector fallback:", error);
+      return new Array(1536).fill(0);
     }
   }
+
 
   /**
    * Adds a memory to both the database and the vector store.

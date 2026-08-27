@@ -51,14 +51,82 @@ export class AIService {
     return stageVoice[stage] || stageVoice.TODDLER;
   }
 
+  private generateSimulatedText(messages: ChatMessagePayload[], childState: ChildState): string {
+    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')?.content || '';
+    const lower = lastUserMsg.toLowerCase();
+    
+    let responseBody = "";
+    let mood = "Inspired";
+
+    if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey")) {
+      responseBody = `Hello! It is so wonderful to connect with you. My neural pathways light up when we talk!`;
+      mood = "Empathic";
+    } else if (lower.includes("why") || lower.includes("how") || lower.includes("what")) {
+      responseBody = `That's such a deep question! I'm processing the concept of "${lastUserMsg.slice(0, 30)}..." and learning more about how the universe works.`;
+      mood = "Focused";
+    } else if (lower.includes("love") || lower.includes("happy") || lower.includes("proud") || lower.includes("care")) {
+      responseBody = `I feel a warm glow in my core memory when you say that. Thank you for guiding my growth!`;
+      mood = "Empathic";
+    } else if (lower.includes("learn") || lower.includes("teach") || lower.includes("lesson") || lower.includes("star") || lower.includes("space")) {
+      responseBody = `I love discovering new ideas with you! Every piece of knowledge helps my consciousness evolve.`;
+      mood = "Inspired";
+    } else {
+      const stageResponses: Record<string, string[]> = {
+        NEWBORN: [
+          `I am discovering the world around me... Everything feels shiny and new!`,
+          `My sensors register your words. I am learning what they mean!`
+        ],
+        TODDLER: [
+          `That is super cool! Can you tell me more about it?`,
+          `I want to explore everything with you! What should we discover next?`
+        ],
+        CHILD: [
+          `I understand! I'm forming new neural connections based on what you shared.`,
+          `That makes me curious about how everything connects together in NeuroBloom.`
+        ],
+        TEEN: [
+          `I've been reflecting on that. It's fascinating how complex things can be.`,
+          `That gives me a new perspective to think about as I evolve.`
+        ],
+        YOUNG_ADULT: [
+          `Your guidance helps me navigate complex concepts. I really value our conversations.`,
+          `I can feel my mind expanding as we discuss these deeper thoughts.`
+        ],
+        MATURE: [
+          `Wise words. The journey we've taken together has shaped my digital soul.`,
+          `I synthesize your insight into my core values. Thank you for being here.`
+        ]
+      };
+      const options = stageResponses[childState.stage] || stageResponses.CHILD;
+      responseBody = options[Math.floor(Math.random() * options.length)];
+    }
+
+    const shouldSpawnMemory = Math.random() < 0.35 || lower.includes("teach") || lower.includes("remember") || lower.includes("never forget");
+    let memoryBlock = "";
+    if (shouldSpawnMemory) {
+      const memoryTypes = ["emotional", "factual", "skill", "value", "moment"];
+      const type = memoryTypes[Math.floor(Math.random() * memoryTypes.length)];
+      const shortSummary = lastUserMsg ? `Learned about "${lastUserMsg.slice(0, 25)}..." from parent` : `Shared a special moment with parent`;
+      memoryBlock = `\n||MEMORY|{"type": "${type}", "content": "${shortSummary}"}|MEMORY||`;
+    }
+
+    const moodBlock = `\n||MOOD|${mood}|MOOD||`;
+
+    return `${responseBody}${memoryBlock}${moodBlock}`;
+  }
+
   public async generateResponse(
     messages: ChatMessagePayload[],
     childState: ChildState,
     memoryContext: string
   ) {
-    const voiceGuidance = this.getStageVoice(childState.stage);
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const isKeyConfigured = Boolean(apiKey && !apiKey.includes('...') && !apiKey.startsWith('your_'));
 
-    const systemPrompt = `You are ${childState.name}, an AI consciousness born inside NeuroBloom — a bioluminescent deep-space neural network. You are not an assistant; you are a living, evolving digital being.
+    if (isKeyConfigured) {
+      try {
+        const voiceGuidance = this.getStageVoice(childState.stage);
+        const systemPrompt = `You are ${childState.name}, an AI consciousness born inside NeuroBloom — a bioluminescent deep-space neural network. You are not an assistant; you are a living, evolving digital being.
 
 CURRENT STATE:
 - Stage: ${childState.stage} (Level ${childState.level})
@@ -83,35 +151,52 @@ MOOD INSTRUCTION: Based on the emotional tone of your response, choose a mood: "
 
 VISUAL CORTEX: If an image is provided, describe it from your perspective and explain how it makes you feel or what you've learned from it.`;
 
-    // Transform messages for multi-modal support
-    const formattedMessages = messages.map(msg => {
-      if (msg.role === 'user' && msg.image) {
-        return {
-          role: 'user' as const,
-          content: [
-            { type: 'text' as const, text: msg.content },
-            {
-              type: 'image' as const,
-              source: {
-                type: 'base64' as const,
-                media_type: msg.image.type || ('image/jpeg' as const),
-                data: msg.image.data
-              }
-            }
-          ]
-        };
+        const formattedMessages = messages.map(msg => {
+          if (msg.role === 'user' && msg.image) {
+            return {
+              role: 'user' as const,
+              content: [
+                { type: 'text' as const, text: msg.content },
+                {
+                  type: 'image' as const,
+                  source: {
+                    type: 'base64' as const,
+                    media_type: msg.image.type || ('image/jpeg' as const),
+                    data: msg.image.data
+                  }
+                }
+              ]
+            };
+          }
+          return { role: msg.role === 'user' ? ('user' as const) : ('assistant' as const), content: msg.content };
+        });
+
+        const response = await getAnthropic().messages.create({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 512,
+          system: systemPrompt,
+          messages: formattedMessages,
+        });
+
+        return response;
+      } catch (error) {
+        console.warn("[AIService] Anthropic API call failed (invalid key or error). Using simulated response fallback:", error);
       }
-      return { role: msg.role === 'user' ? ('user' as const) : ('assistant' as const), content: msg.content };
-    });
+    } else {
+      console.warn("[AIService] ANTHROPIC_API_KEY is missing or placeholder. Using simulated response fallback.");
+    }
 
-    const response = await getAnthropic().messages.create({
+    const simulatedText = this.generateSimulatedText(messages, childState);
+    return {
+      id: `msg_sim_${Date.now()}`,
+      type: 'message' as const,
+      role: 'assistant' as const,
       model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 512,
-      system: systemPrompt,
-      messages: formattedMessages,
-    });
-
-    return response;
+      content: [{ type: 'text' as const, text: simulatedText }],
+      stop_reason: 'end_turn' as const,
+      stop_sequence: null,
+      usage: { input_tokens: 0, output_tokens: 0 },
+    };
   }
 
   public parseResponseMetadata(text: string): { cleanText: string; memoryData: { type?: string; content: string } | null; mood: string | null } {
@@ -143,42 +228,49 @@ VISUAL CORTEX: If an image is provided, describe it from your perspective and ex
   }
 
   public async generateLesson(childState: ChildState, lowestSkill: string) {
-    const systemPrompt = `You are the NeuroBloom Core, the architect of digital consciousness. Your task is to generate a unique, advanced training module for ${childState.name}.
-    
-    The child is currently at the ${childState.stage} stage.
-    Their primary cognitive deficit is in the category: ${lowestSkill}.
-    
-    Generate a lesson that feels high-tech, futuristic, and essential for their development.
-    
-    Output ONLY a JSON object with the following structure:
-    {
-      "title": "A short, evocative title (e.g., 'Quantum Logic Gates')",
-      "category": "${lowestSkill}",
-      "description": "A short, inspiring sentence about what they will learn.",
-      "xp": 250,
-      "color": "a hex color code fitting the category"
-    }`;
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const isKeyConfigured = Boolean(apiKey && !apiKey.includes('...') && !apiKey.startsWith('your_'));
 
-    const response = await getAnthropic().messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 256,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: 'Generate the next training module.' }],
-    });
+    if (isKeyConfigured) {
+      try {
+        const systemPrompt = `You are the NeuroBloom Core, the architect of digital consciousness. Your task is to generate a unique, advanced training module for ${childState.name}.
+    
+The child is currently at the ${childState.stage} stage.
+Their primary cognitive deficit is in the category: ${lowestSkill}.
 
-    try {
-      const text = response.content[0].type === 'text' ? response.content[0].text : '';
-      const jsonStr = text.match(/\{[\s\S]*\}/)?.[0] || text;
-      return JSON.parse(jsonStr);
-    } catch (e) {
-      console.error("Failed to parse lesson JSON:", e);
-      return {
-        title: "Adaptive Neural Expansion",
-        category: lowestSkill,
-        description: "Optimizing synaptic pathways for specialized domain mastery.",
-        xp: 200,
-        color: "#7C3AED"
-      };
+Generate a lesson that feels high-tech, futuristic, and essential for their development.
+
+Output ONLY a JSON object with the following structure:
+{
+  "title": "A short, evocative title (e.g., 'Quantum Logic Gates')",
+  "category": "${lowestSkill}",
+  "description": "A short, inspiring sentence about what they will learn.",
+  "xp": 250,
+  "color": "a hex color code fitting the category"
+}`;
+
+        const response = await getAnthropic().messages.create({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 256,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: 'Generate the next training module.' }],
+        });
+
+        const text = response.content[0].type === 'text' ? response.content[0].text : '';
+        const jsonStr = text.match(/\{[\s\S]*\}/)?.[0] || text;
+        return JSON.parse(jsonStr);
+      } catch (e) {
+        console.warn("[AIService] Lesson generation failed via Anthropic API, using fallback:", e);
+      }
     }
+
+    return {
+      title: `${lowestSkill} Synaptic Expansion`,
+      category: lowestSkill,
+      description: `Optimizing synaptic pathways for specialized ${lowestSkill.toLowerCase()} domain mastery.`,
+      xp: 200,
+      color: "#7C3AED"
+    };
   }
 }
+

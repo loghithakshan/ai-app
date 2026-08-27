@@ -100,17 +100,6 @@ export default function Home() {
       {/* ── HERO ─────────────────────────────────────── */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-6 text-center z-10 pt-20">
         <motion.div ref={heroRef} style={{ y: heroY, opacity: heroOpacity }}>
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent-neural/10 border border-accent-neural/30 text-accent-neural text-sm font-semibold mb-8"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            Powered by Claude Sonnet 4.5 · Deep Space AI
-          </motion.div>
-
           {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
