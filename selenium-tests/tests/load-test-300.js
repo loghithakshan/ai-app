@@ -323,8 +323,12 @@ async function runLoadTestSuite() {
 
     results.push(resultItem);
 
+    // Print individual test case output for GitHub Actions logs
+    const icon = resultItem.status === 'PASSED' ? '✓' : '✗';
+    console.log(`[TC-${tc.id}] ${icon} ${resultItem.status} | Cat: ${tc.category.padEnd(22)} | Route: ${tc.path.padEnd(20)} | Concurrency: ${tc.concurrency || 1} | Latency: ${res.durationMs}ms | HTTP ${res.statusCode}`);
+
     if ((i + 1) % 50 === 0 || i === registry.length - 1) {
-      console.log(`[PROGRESS] Executed ${i + 1}/${registry.length} load test cases... (Latest Latency: ${res.durationMs}ms, Status: ${res.statusCode})`);
+      console.log(`\n--- [PROGRESS] Completed ${i + 1}/${registry.length} load test cases ---\n`);
     }
   }
 
@@ -348,6 +352,56 @@ async function runLoadTestSuite() {
   console.log(`  Passed:      ${passedCount}`);
   console.log(`  Failed:      ${failedCount}`);
   console.log(`  Pass Rate:   ${passRate}%`);
+  console.log(`  Latency Metrics: Avg=${avgLatency}ms | Min=${minLatency}ms | Max=${maxLatency}ms`);
+  console.log(`  Percentiles:     p50=${p50}ms | p90=${p90}ms | p95=${p95}ms | p99=${p99}ms`);
+  console.log(`=============================================================\n`);
+
+  // Write GitHub Step Summary if running in GitHub Actions environment
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    try {
+      let md = `## 🚀 NeuroBloom Web Application — 300 Load Test Cases Report\n\n`;
+      md += `### 📊 Executive Summary\n`;
+      md += `| Metric | Value |\n| --- | --- |\n`;
+      md += `| **Target URL** | \`${CONFIG.baseUrl}\` |\n`;
+      md += `| **Total Test Cases** | **${results.length}** |\n`;
+      md += `| **Passed Cases** | **${passedCount}** |\n`;
+      md += `| **Failed Cases** | **${failedCount}** |\n`;
+      md += `| **Pass Rate** | **${passRate}%** |\n`;
+      md += `| **Average Latency** | ${avgLatency}ms |\n`;
+      md += `| **p50 Latency** | ${p50}ms |\n`;
+      md += `| **p90 Latency** | ${p90}ms |\n`;
+      md += `| **p95 Latency** | ${p95}ms |\n`;
+      md += `| **p99 Latency** | ${p99}ms |\n\n`;
+
+      md += `### 🏷️ Category Breakdown\n`;
+      md += `| Category | Total Cases | Passed | Failed | Pass Rate | Avg Latency |\n`;
+      md += `| --- | --- | --- | --- | --- | --- |\n`;
+
+      const categories = [...new Set(results.map(r => r.category))];
+      categories.forEach(cat => {
+        const items = results.filter(r => r.category === cat);
+        const catPassed = items.filter(r => r.status === 'PASSED').length;
+        const catFailed = items.length - catPassed;
+        const catRate = ((catPassed / items.length) * 100).toFixed(1);
+        const catAvg = (items.reduce((acc, r) => acc + r.latencyMs, 0) / items.length).toFixed(1);
+        md += `| ${cat} | ${items.length} | ${catPassed} | ${catFailed} | ${catRate}% | ${catAvg}ms |\n`;
+      });
+
+      md += `\n<details><summary><b>🔍 View All 300 Load Test Cases Breakdown</b></summary>\n\n`;
+      md += `| TC ID | Category | Description | Route Path | Method | Latency | Status |\n`;
+      md += `| --- | --- | --- | --- | --- | --- | --- |\n`;
+      results.forEach(r => {
+        const badge = r.status === 'PASSED' ? '✅ PASSED' : '❌ FAILED';
+        md += `| ${r.id} | ${r.category} | ${r.description} | \`${r.path}\` | ${r.method} | ${r.latencyMs}ms | ${badge} |\n`;
+      });
+      md += `\n</details>\n`;
+
+      fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, md, 'utf8');
+      console.log(`[GITHUB ACTIONS] Successfully posted 300 test cases report to GITHUB_STEP_SUMMARY.`);
+    } catch (err) {
+      console.error('[GITHUB ACTIONS] Failed to write GITHUB_STEP_SUMMARY:', err.message);
+    }
+  }
   console.log(`  Latency Metrics: Avg=${avgLatency}ms | Min=${minLatency}ms | Max=${maxLatency}ms`);
   console.log(`  Percentiles:     p50=${p50}ms | p90=${p90}ms | p95=${p95}ms | p99=${p99}ms`);
   console.log(`=============================================================\n`);
