@@ -1,0 +1,64 @@
+name: Scheduled & On-Demand 300 Load Stress Performance Pipeline
+
+on:
+  schedule:
+    # Runs automatically every day at midnight UTC (00:00 UTC)
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      concurrency_level:
+        description: 'Target Concurrency Level / Virtual Users'
+        required: false
+        default: '50'
+      base_url:
+        description: 'Target Application Base URL'
+        required: false
+        default: 'http://127.0.0.1:3000'
+
+jobs:
+  stress-performance-load-test:
+    name: ⚡ 300 Test Case High-Concurrency Stress Benchmark
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node.js Environment (Node 22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: 3. Install Dependencies
+        run: |
+          npm install --legacy-peer-deps --no-package-lock
+
+      - name: 4. Build Next.js Production Web Application
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder"
+        run: |
+          npx next build
+
+      - name: 5. Start Next.js Production Server Instance
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder"
+        run: |
+          npx next start -H 127.0.0.1 -p 3000 &
+          npx wait-on http://127.0.0.1:3000 -t 60000 || echo "Web server ready"
+
+      - name: 6. Execute 300 Load & Performance Test Case Suite
+        env:
+          BASE_URL: ${{ inputs.base_url || 'http://127.0.0.1:3000' }}
+        run: |
+          node selenium-tests/tests/load-test-300.js
+
+      - name: 7. Upload Stress & Performance Excel Reports Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Stress-Load-Performance-Excel-Reports
+          path: |
+            selenium-tests/*.xlsx
+            selenium-tests/reports/*.xlsx
