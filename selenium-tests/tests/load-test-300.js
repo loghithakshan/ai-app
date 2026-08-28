@@ -422,164 +422,123 @@ async function runLoadTestSuite() {
   });
 }
 
-// Generate Excel Report with ExcelJS or XML fallback
+// Generate Excel Report with ExcelJS native binary writer
 async function generateExcelReport(results, metrics) {
   const outputDir = path.dirname(CONFIG.excelReportPath);
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  // Generate XML Spreadsheet structure compatible with Excel
-  let xml = `<?xml version="1.0"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-microsoft-com:office:spreadsheet">
- <DocumentProperties xmlns="urn:schemas-microsoft-microsoft-com:office:office">
-  <Author>NeuroBloom Performance QA Architect</Author>
-  <Created>${new Date().toISOString()}</Created>
- </DocumentProperties>
- <Styles>
-  <Style ss:ID="Title">
-   <Font ss:FontName="Arial" ss:Size="14" ss:Bold="1" ss:Color="#FFFFFF"/>
-   <Interior ss:Color="#1E1B4B" ss:Pattern="Solid"/>
-  </Style>
-  <Style ss:ID="Header">
-   <Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
-   <Interior ss:Color="#4338CA" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center"/>
-  </Style>
-  <Style ss:ID="CatHeader">
-   <Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
-   <Interior ss:Color="#0284C7" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center"/>
-  </Style>
-  <Style ss:ID="Passed">
-   <Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#15803D"/>
-   <Interior ss:Color="#DCFCE7" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center"/>
-  </Style>
-  <Style ss:ID="Failed">
-   <Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#B91C1C"/>
-   <Interior ss:Color="#FEE2E2" ss:Pattern="Solid"/>
-   <Alignment ss:Horizontal="Center"/>
-  </Style>
-  <Style ss:ID="Center">
-   <Alignment ss:Horizontal="Center"/>
-  </Style>
-  <Style ss:ID="Label">
-   <Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#334155"/>
-  </Style>
- </Styles>
+  if (ExcelJS) {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'NeuroBloom Performance Architect';
+    workbook.created = new Date();
 
- <Worksheet ss:Name="Executive Summary">
-  <Table ss:DefaultColumnWidth="180">
-   <Column ss:Width="240"/>
-   <Column ss:Width="320"/>
-   <Row ss:Height="30"><Cell ss:StyleID="Title"><Data ss:Type="String">  NEUROBLOOM WEB APPLICATION - 300 LOAD TEST RESULTS</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Execution Date &amp; Time</Data></Cell><Cell><Data ss:Type="String">${new Date().toLocaleString()}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Target Application URL</Data></Cell><Cell><Data ss:Type="String">${CONFIG.baseUrl}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Total Test Cases Executed</Data></Cell><Cell><Data ss:Type="Number">${results.length}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Passed Load Cases</Data></Cell><Cell><Data ss:Type="Number">${metrics.passedCount}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Failed Load Cases</Data></Cell><Cell><Data ss:Type="Number">${metrics.failedCount}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Overall Pass Rate</Data></Cell><Cell ss:StyleID="Passed"><Data ss:Type="String">${metrics.passRate}%</Data></String></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">Average Latency (ms)</Data></Cell><Cell><Data ss:Type="Number">${metrics.avgLatency}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">50th Percentile (p50 Latency)</Data></Cell><Cell><Data ss:Type="Number">${metrics.p50}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">90th Percentile (p90 Latency)</Data></Cell><Cell><Data ss:Type="Number">${metrics.p90}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">95th Percentile (p95 Latency)</Data></Cell><Cell><Data ss:Type="Number">${metrics.p95}</Data></Cell></Row>
-   <Row><Cell ss:StyleID="Label"><Data ss:Type="String">99th Percentile (p99 Latency)</Data></Cell><Cell><Data ss:Type="Number">${metrics.p99}</Data></Cell></Row>
-  </Table>
- </Worksheet>
+    // Sheet 1: Executive Summary
+    const summarySheet = workbook.addWorksheet('Executive Summary');
+    summarySheet.views = [{ showGridLines: true }];
 
- <Worksheet ss:Name="Category Summary">
-  <Table>
-   <Column ss:Width="220"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="120"/>
-   <Column ss:Width="120"/>
-   <Row ss:Height="25">
-    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Category</Data></Cell>
-    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Total</Data></Cell>
-    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Passed</Data></Cell>
-    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Failed</Data></Cell>
-    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Pass Rate</Data></Cell>
-    <Cell ss:StyleID="CatHeader"><Data ss:Type="String">Avg Latency (ms)</Data></Cell>
-   </Row>`;
+    const titleRow = summarySheet.addRow(['NEUROBLOOM WEB APPLICATION - 300 LOAD TEST RESULTS']);
+    titleRow.height = 32;
+    titleRow.getCell(1).font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FFFFFF' } };
+    titleRow.getCell(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '1E1B4B' } };
+    titleRow.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };
+    summarySheet.mergeCells('A1:B1');
 
-  // Category statistics calculation
-  const categories = [...new Set(results.map(r => r.category))];
-  categories.forEach(cat => {
-    const catItems = results.filter(r => r.category === cat);
-    const total = catItems.length;
-    const passed = catItems.filter(r => r.status === 'PASSED').length;
-    const failed = total - passed;
-    const rate = ((passed / total) * 100).toFixed(1);
-    const avgMs = (catItems.reduce((acc, r) => acc + r.latencyMs, 0) / total).toFixed(1);
+    const metaData = [
+      ['Execution Date & Time', new Date().toLocaleString()],
+      ['Target Application URL', CONFIG.baseUrl],
+      ['Total Test Cases Executed', results.length],
+      ['Passed Load Cases', metrics.passedCount],
+      ['Failed Load Cases', metrics.failedCount],
+      ['Overall Pass Rate', `${metrics.passRate}%`],
+      ['Average Latency (ms)', metrics.avgLatency],
+      ['50th Percentile (p50 Latency)', metrics.p50],
+      ['90th Percentile (p90 Latency)', metrics.p90],
+      ['95th Percentile (p95 Latency)', metrics.p95],
+      ['99th Percentile (p99 Latency)', metrics.p99]
+    ];
 
-    xml += `
-   <Row ss:Height="20">
-    <Cell><Data ss:Type="String">${cat}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${total}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${passed}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${failed}</Data></Cell>
-    <Cell ss:StyleID="Passed"><Data ss:Type="String">${rate}%</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${avgMs}</Data></Cell>
-   </Row>`;
-  });
+    metaData.forEach(([label, value]) => {
+      const row = summarySheet.addRow([label, value]);
+      row.height = 22;
+      const cell1 = row.getCell(1);
+      const cell2 = row.getCell(2);
+      cell1.font = { name: 'Arial', size: 10, bold: true, color: { argb: '334155' } };
+      cell2.font = { name: 'Arial', size: 10, bold: label === 'Overall Pass Rate' };
 
-  xml += `
-  </Table>
- </Worksheet>
+      if (label === 'Overall Pass Rate' || label === 'Passed Load Cases') {
+        cell2.font = { name: 'Arial', size: 10, bold: true, color: { argb: '15803D' } };
+        cell2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'DCFCE7' } };
+      }
+    });
+    summarySheet.columns = [{ width: 30 }, { width: 35 }];
 
- <Worksheet ss:Name="300 Detailed Test Cases">
-  <Table>
-   <Column ss:Width="90"/>
-   <Column ss:Width="180"/>
-   <Column ss:Width="380"/>
-   <Column ss:Width="140"/>
-   <Column ss:Width="80"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="100"/>
-   <Row ss:Height="25">
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Test Case ID</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Category</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Description &amp; Target</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Route Path</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Method</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Status Code</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Latency (ms)</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Result Status</Data></Cell>
-   </Row>`;
+    // Sheet 2: Category Summary
+    const catSheet = workbook.addWorksheet('Category Summary');
+    catSheet.views = [{ showGridLines: true }];
+    const catHeaderRow = catSheet.addRow(['Category', 'Total Cases', 'Passed', 'Failed', 'Pass Rate', 'Avg Latency (ms)']);
+    catHeaderRow.height = 26;
+    catHeaderRow.eachCell(cell => {
+      cell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0284C7' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
 
-  results.forEach(r => {
-    const statusStyle = r.status === 'PASSED' ? 'Passed' : 'Failed';
-    xml += `
-   <Row ss:Height="20">
-    <Cell ss:StyleID="Center"><Data ss:Type="String">${r.id}</Data></Cell>
-    <Cell><Data ss:Type="String">${r.category}</Data></Cell>
-    <Cell><Data ss:Type="String">${r.description}</Data></Cell>
-    <Cell><Data ss:Type="String">${r.path}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="String">${r.method}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${r.statusCode}</Data></Cell>
-    <Cell ss:StyleID="Center"><Data ss:Type="Number">${r.latencyMs}</Data></Cell>
-    <Cell ss:StyleID="${statusStyle}"><Data ss:Type="String">${r.status}</Data></Cell>
-   </Row>`;
-  });
+    const categories = [...new Set(results.map(r => r.category))];
+    categories.forEach(cat => {
+      const catItems = results.filter(r => r.category === cat);
+      const total = catItems.length;
+      const passed = catItems.filter(r => r.status === 'PASSED').length;
+      const failed = total - passed;
+      const rate = ((passed / total) * 100).toFixed(1) + '%';
+      const avgMs = (catItems.reduce((acc, r) => acc + r.latencyMs, 0) / total).toFixed(1);
 
-  xml += `
-  </Table>
- </Worksheet>
-</Workbook>`;
+      const r = catSheet.addRow([cat, total, passed, failed, rate, parseFloat(avgMs)]);
+      r.height = 20;
+      r.eachCell((cell, col) => {
+        if (col >= 2) cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        if (col === 5) cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: '15803D' } };
+      });
+    });
+    catSheet.columns = [{ width: 28 }, { width: 14 }, { width: 14 }, { width: 14 }, { width: 16 }, { width: 18 }];
 
-  fs.writeFileSync(CONFIG.excelReportPath, xml, 'utf8');
-  fs.writeFileSync(CONFIG.loadReportPath, xml, 'utf8');
-  console.log(`[REPORT SUCCESS] 300-Test-Case Excel reports generated successfully:`);
-  console.log(` -> ${CONFIG.excelReportPath}`);
-  console.log(` -> ${CONFIG.loadReportPath}`);
+    // Sheet 3: 300 Detailed Load Test Cases
+    const detailSheet = workbook.addWorksheet('300 Detailed Load Test Cases');
+    detailSheet.views = [{ showGridLines: true }];
+    const detailHeaderRow = detailSheet.addRow(['Test ID', 'Category', 'Description & Target', 'Route Path', 'Method', 'Status Code', 'Latency (ms)', 'Result Status']);
+    detailHeaderRow.height = 26;
+    detailHeaderRow.eachCell(cell => {
+      cell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '4338CA' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    results.forEach(r => {
+      const row = detailSheet.addRow([r.id, r.category, r.description, r.path, r.method, r.statusCode, r.latencyMs, r.status]);
+      row.height = 20;
+      row.eachCell((cell, col) => {
+        cell.font = { name: 'Calibri', size: 10 };
+        if (col === 1 || col === 5 || col === 6 || col === 7 || col === 8) {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+        if (col === 8) {
+          if (r.status === 'PASSED') {
+            cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: '15803D' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'DCFCE7' } };
+          } else {
+            cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'B91C1C' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FEE2E2' } };
+          }
+        }
+      });
+    });
+    detailSheet.columns = [{ width: 12 }, { width: 24 }, { width: 45 }, { width: 20 }, { width: 12 }, { width: 14 }, { width: 16 }, { width: 16 }];
+
+    await workbook.xlsx.writeFile(CONFIG.excelReportPath);
+    await workbook.xlsx.writeFile(CONFIG.loadReportPath);
+    console.log(`[REPORT SUCCESS] Native OpenXML Binary Excel reports (.xlsx) saved cleanly to:\n  - ${CONFIG.excelReportPath}\n  - ${CONFIG.loadReportPath}`);
+  }
 }
 
 // Run execution

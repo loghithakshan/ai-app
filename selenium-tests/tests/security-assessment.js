@@ -68,52 +68,58 @@ async function runSecurityAssessment() {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  let xml = `<?xml version="1.0"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-microsoft-com:office:spreadsheet"
- xmlns:ss="urn:schemas-microsoft-microsoft-com:office:spreadsheet">
- <DocumentProperties xmlns="urn:schemas-microsoft-microsoft-com:office:office">
-  <Author>NeuroBloom Security Architect</Author>
-  <Created>${new Date().toISOString()}</Created>
- </DocumentProperties>
- <Styles>
-  <Style ss:ID="Header"><Font ss:FontName="Arial" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#4338CA" ss:Pattern="Solid"/></Style>
-  <Style ss:ID="Passed"><Font ss:FontName="Arial" ss:Size="10" ss:Bold="1" ss:Color="#15803D"/><Interior ss:Color="#DCFCE7" ss:Pattern="Solid"/></Style>
-  <Style ss:ID="Center"><Alignment ss:Horizontal="Center"/></Style>
- </Styles>
- <Worksheet ss:Name="Security Assessment">
-  <Table>
-   <Column ss:Width="90"/>
-   <Column ss:Width="180"/>
-   <Column ss:Width="300"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="300"/>
-   <Row ss:Height="25">
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Check ID</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Category</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Security Check Name</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Status</Data></Cell>
-    <Cell ss:StyleID="Header"><Data ss:Type="String">Audit Details</Data></Cell>
-   </Row>`;
+  let ExcelJS;
+  try {
+    ExcelJS = require('exceljs');
+  } catch (e) {
+    try {
+      ExcelJS = require(path.join(__dirname, '..', '..', 'node_modules', 'exceljs'));
+    } catch (err) {}
+  }
 
-  securityChecks.forEach(c => {
-    xml += `
-   <Row ss:Height="20">
-    <Cell ss:StyleID="Center"><Data ss:Type="String">${c.id}</Data></Cell>
-    <Cell><Data ss:Type="String">${c.category}</Data></Cell>
-    <Cell><Data ss:Type="String">${c.check}</Data></Cell>
-    <Cell ss:StyleID="Passed"><Data ss:Type="String">PASSED</Data></Cell>
-    <Cell><Data ss:Type="String">${c.details}</Data></Cell>
-   </Row>`;
-  });
+  if (ExcelJS) {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'NeuroBloom Security Architect';
+    workbook.created = new Date();
 
-  xml += `
-  </Table>
- </Worksheet>
-</Workbook>`;
+    const sheet = workbook.addWorksheet('Security Assessment');
+    sheet.views = [{ showGridLines: true }];
 
-  fs.writeFileSync(CONFIG.reportPath, xml, 'utf8');
-  console.log(`[REPORT SUCCESS] Security assessment report generated at: ${CONFIG.reportPath}`);
+    const headerRow = sheet.addRow(['Check ID', 'Category', 'Security Check Name', 'Status', 'Audit Details']);
+    headerRow.height = 26;
+    headerRow.eachCell(cell => {
+      cell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '4338CA' } };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+    });
+
+    securityChecks.forEach(c => {
+      const row = sheet.addRow([c.id, c.category, c.check, 'PASSED', c.details]);
+      row.height = 20;
+      row.eachCell((cell, col) => {
+        cell.font = { name: 'Calibri', size: 10 };
+        cell.alignment = { vertical: 'middle' };
+        if (col === 1 || col === 4) {
+          cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        }
+        if (col === 4) {
+          cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: '15803D' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'DCFCE7' } };
+        }
+      });
+    });
+
+    sheet.columns = [
+      { width: 14 },
+      { width: 24 },
+      { width: 40 },
+      { width: 14 },
+      { width: 45 }
+    ];
+
+    await workbook.xlsx.writeFile(CONFIG.reportPath);
+    console.log(`[REPORT SUCCESS] Native OpenXML Binary Security report (.xlsx) saved cleanly at: ${CONFIG.reportPath}`);
+  }
 
   if (process.env.GITHUB_STEP_SUMMARY) {
     try {
