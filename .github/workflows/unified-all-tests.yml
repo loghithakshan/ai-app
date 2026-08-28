@@ -61,7 +61,13 @@ jobs:
           cd test-automation
           npm run test:discover || true
 
-      - name: 10. Upload Master Consolidated Excel Reports Artifact
+      - name: 10. Run Test 5 - Web Load & Performance Suite (300 Test Cases)
+        env:
+          BASE_URL: 'http://localhost:3000'
+        run: |
+          node selenium-tests/tests/load-test-300.js
+
+      - name: 11. Upload Master Consolidated Excel Reports Artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -74,20 +80,11 @@ jobs:
             test-automation/*.xlsx
             test-automation/reports/*.xlsx
 
-      - name: 11. Upload Dedicated Selenium 300 Excel Artifacts
+      - name: 12. Upload Dedicated Web Load Testing 300 Excel Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Selenium-E2E-300-Excel-Reports
+          name: Web-Load-Testing-300-Excel-Reports
           path: |
-            selenium-tests/*.xlsx
-            selenium-tests/reports/*.xlsx
-
-      - name: 12. Upload Dedicated Appium Mobile 300 Excel Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Appium-Mobile-E2E-300-Excel-Reports
-          path: |
-            appium-tests/*.xlsx
-            appium-tests/reports/*.xlsx
+            selenium-tests/reports/Web_Load_Testing_300_Report.xlsx
+            selenium-tests/reports/Selenium_E2E_300_Test_Results.xlsx
