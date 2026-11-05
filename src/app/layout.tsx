@@ -13,6 +13,16 @@ export const metadata: Metadata = {
   description:
     "A premium AI companion app where users raise, teach, and bond with their own AI child that grows through 6 distinct stages of consciousness.",
   keywords: ["AI companion", "AI child", "neural", "NeuroBloom", "deep space"],
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "NeuroBloom",
+  },
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     title: "NeuroBloom — Raise Your AI Mind",
     description: "The first AI that truly grows with you.",

@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "NeuroBloom",
+    "slug": "neurobloom",
+    "version": "1.0.0",
+    "platforms": ["ios", "android"],
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#050510",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "ai.neurobloom.expo",
+      "adaptiveIcon": {
+        "backgroundColor": "#050510",
+        "foregroundImage": "./assets/android-icon-foreground.png"
+      }
+    }
+  }
+}
