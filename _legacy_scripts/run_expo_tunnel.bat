@@ -28,3 +28,4 @@ for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":8081 " ^| findstr "LISTENIN
 
 cd "%~dp0expo-app"
 npx expo start --tunnel
+

@@ -21,3 +21,4 @@ echo.
 cd /d "%~dp0expo-app"
 npx eas-cli build -p android --profile preview
 pause
+

@@ -7,12 +7,9 @@
     "build": "next build",
     "start": "next start -H 0.0.0.0 -p 3000",
     "lint": "eslint",
-    "cap:add": "cap add android",
-    "cap:open": "cap open android",
-    "cap:sync": "cap sync",
-    "dev:open": "start http://localhost:3000 & next dev -H 0.0.0.0 -p 3000",
-    "expo:start": "cd expo-app && npx expo start",
-    "expo:install": "cd expo-app && npm install"
+    "mobile": "cd expo-app && npx expo start",
+    "mobile:tunnel": "cd expo-app && npx expo start --tunnel",
+    "mobile:apk": "cd expo-app && npx eas-cli build -p android --profile preview"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.2",
