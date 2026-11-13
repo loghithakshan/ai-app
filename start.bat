@@ -2,6 +2,11 @@
 title NeuroBloom - Master Launcher
 color 0B
 
+:: Ensure Android SDK and ADB are in PATH
+set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
+set "ANDROID_SDK_ROOT=%LOCALAPPDATA%\Android\Sdk"
+set "PATH=%LOCALAPPDATA%\Android\Sdk\platform-tools;%~dp0platform-tools;%PATH%"
+
 :menu
 cls
 echo ======================================================================
