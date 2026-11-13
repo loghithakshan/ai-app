@@ -12,15 +12,14 @@ import {
   KeyboardAvoidingView,
   Animated,
   Easing,
-  StatusBar as RNStatusBar,
 } from 'react-native';
-import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
 
 // Current local IPs detected on development host
-const CURRENT_WIFI_IP = '172.26.28.70';
+const CURRENT_WIFI_IP = '10.134.94.70';
 const HOTSPOT_IP = '192.168.137.1';
 
 // Automatically detect the host PC's IP address from Expo Metro bundler
@@ -33,16 +32,16 @@ const getDetectedServerUrl = () => {
       Constants.manifest?.debuggerHost;
 
     if (hostUri) {
-      const ip = hostUri.split(':')[0];
-      if (ip === 'localhost' || ip === '127.0.0.1') {
+      const host = hostUri.split(':')[0];
+      if (host === 'localhost' || host === '127.0.0.1') {
         return 'http://localhost:3000';
       }
-      if (ip && ip.length > 6) {
-        return `http://${ip}:3000`;
+      if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host)) {
+        return `http://${host}:3000`;
       }
     }
   } catch (e) {
-    // Fall back to known active IP
+    // Fall back to current active Wi-Fi IP
   }
   return `http://${CURRENT_WIFI_IP}:3000`;
 };
@@ -50,28 +49,37 @@ const getDetectedServerUrl = () => {
 const DEFAULT_URL = getDetectedServerUrl();
 
 const PRESETS = [
-  { label: '⚡ USB Cable Tunnel (localhost:3000)', url: 'http://localhost:3000' },
   { label: `📶 Current Wi-Fi (${CURRENT_WIFI_IP}:3000)`, url: `http://${CURRENT_WIFI_IP}:3000` },
+  { label: '⚡ USB Cable Tunnel (localhost:3000)', url: 'http://localhost:3000' },
   { label: `📱 Mobile Hotspot (${HOTSPOT_IP}:3000)`, url: `http://${HOTSPOT_IP}:3000` },
   { label: '🔍 Auto-Detected Metro IP', url: getDetectedServerUrl() },
 ];
 
-// Injected CSS and scripts to provide buttery-smooth transitions inside the app
-// without modifying ANY files in src/ (preserves web desktop alignment completely)
-const INJECTED_TRANSITIONS_SCRIPT = `
+// Injected CSS and scripts to provide perfect mobile layout alignments and smooth transitions
+// ONLY inside the mobile app — leaves web desktop/laptop layout 100% untouched in src/
+const INJECTED_MOBILE_STYLING_SCRIPT = `
 (function() {
-  // Prevent duplicate injection
-  if (window.__neurobloom_mobile_injected) return;
-  window.__neurobloom_mobile_injected = true;
+  // 1. Ensure viewport meta is optimized for mobile app
+  var viewportMeta = document.querySelector('meta[name="viewport"]');
+  if (!viewportMeta) {
+    viewportMeta = document.createElement('meta');
+    viewportMeta.name = 'viewport';
+    document.head.appendChild(viewportMeta);
+  }
+  viewportMeta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
 
-  // Inject optimized mobile transition stylesheet
+  // 2. Prevent duplicate style injection
+  if (document.getElementById('neurobloom-mobile-overrides')) return;
+
   var style = document.createElement('style');
-  style.id = 'neurobloom-mobile-transitions';
+  style.id = 'neurobloom-mobile-overrides';
   style.innerHTML = \`
+    /* Mobile App Global Polish */
     * {
       -webkit-tap-highlight-color: transparent !important;
       -webkit-touch-callout: none !important;
       outline: none !important;
+      box-sizing: border-box !important;
     }
 
     html, body {
@@ -80,17 +88,25 @@ const INJECTED_TRANSITIONS_SCRIPT = `
       -webkit-font-smoothing: antialiased !important;
       touch-action: pan-x pan-y !important;
       user-select: none !important;
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
+      width: 100% !important;
+      height: 100% !important;
     }
 
-    /* Hardware-accelerated smooth transitions for page and layout changes */
+    /* Hardware-accelerated smooth transitions for page switches */
     main, #__next, [role="main"] {
       transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
       will-change: opacity, transform;
+      width: 100vw !important;
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
     }
 
     /* Fluid interactive button & link micro-transitions */
     button, a, [role="button"] {
       transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.16s ease !important;
+      touch-action: manipulation !important;
     }
 
     button:active, a:active, [role="button"]:active {
@@ -98,27 +114,103 @@ const INJECTED_TRANSITIONS_SCRIPT = `
       opacity: 0.82 !important;
     }
 
-    /* Smooth dialog & modal transitions */
-    [role="dialog"] {
-      animation: nbModalFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-    }
-
-    @keyframes nbModalFadeIn {
-      from {
-        opacity: 0;
-        transform: scale(0.95) translateY(8px);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-      }
-    }
-
-    /* Hide unsightly browser scrollbars on mobile view */
+    /* Hide ugly browser scrollbars on mobile */
     ::-webkit-scrollbar {
       width: 0px !important;
       height: 0px !important;
       display: none !important;
+    }
+
+    /* ========================================================== */
+    /* MOBILE ALIGNMENT OVERRIDES (ACTIVE ONLY ON PHONES <= 1024px) */
+    /* ========================================================== */
+    @media (max-width: 1024px) {
+      /* Mobile Shell Root */
+      .h-screen {
+        height: 100vh !important;
+        height: 100dvh !important;
+        overflow: hidden !important;
+      }
+
+      /* Mobile Hamburger Menu button */
+      button:has(svg.lucide-menu), .lg\\\\:hidden.absolute.top-4.left-4 {
+        top: 14px !important;
+        left: 14px !important;
+        z-index: 80 !important;
+        background: rgba(13, 13, 32, 0.75) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 12px !important;
+      }
+
+      /* Brain Canvas Container: Perfect 38vh height so 3D model looks magnificent */
+      main > div > div:first-child,
+      div:has(> div > canvas) {
+        height: 38vh !important;
+        min-height: 240px !important;
+        max-height: 42vh !important;
+        width: 100% !important;
+        position: relative !important;
+      }
+
+      /* Status HUD: Centered, clean scale, zero overlap with hamburger */
+      .pointer-events-none.absolute.left-1\\\\/2 {
+        top: 12px !important;
+        transform: translateX(-50%) scale(0.82) !important;
+        transform-origin: top center !important;
+        width: auto !important;
+        max-width: 90vw !important;
+        z-index: 40 !important;
+      }
+
+      /* Cognitive Insights: Clean placement in bottom-left corner */
+      .pointer-events-none.absolute.left-4 {
+        bottom: 8px !important;
+        left: 10px !important;
+        transform: scale(0.76) !important;
+        transform-origin: bottom left !important;
+        z-index: 30 !important;
+      }
+
+      /* Chat Window: Sleek bottom drawer taking remaining 62vh cleanly */
+      aside, main > div > aside {
+        height: 62vh !important;
+        height: calc(62dvh) !important;
+        width: 100% !important;
+        border-top: 1px solid rgba(124, 58, 237, 0.3) !important;
+        border-radius: 22px 22px 0 0 !important;
+        background: rgba(13, 13, 32, 0.94) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5) !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+
+      /* Chat Messages Scrollable Container */
+      aside .overflow-y-auto, aside [class*="overflow"] {
+        padding: 12px !important;
+        padding-bottom: 80px !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      /* Chat Input Bar: Pinned above phone bottom gesture navigation */
+      aside form, aside [class*="border-t"] {
+        padding-bottom: max(env(safe-area-inset-bottom, 8px), 12px) !important;
+        background: rgba(5, 5, 16, 0.95) !important;
+      }
+
+      /* Grid alignments on other pages (Memories, Lessons, Garage, etc.) */
+      .grid-cols-2, .grid-cols-3, .grid-cols-4 {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+      }
+
+      /* Safe edge padding */
+      .p-8, .p-6 {
+        padding: 16px !important;
+      }
     }
   \`;
 
@@ -140,16 +232,24 @@ export default function App() {
   const [loadError, setLoadError] = useState(null);
   const [canGoBack, setCanGoBack] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [navTitle, setNavTitle] = useState('NeuroBloom');
 
   const webViewRef = useRef(null);
 
   // Animated values for transitions
-  const fadeAnim = useRef(new Animated.Value(0)).current; // Webview fade-in
-  const splashOpacity = useRef(new Animated.Value(1)).current; // Splash fade-out
-  const pulseAnim = useRef(new Animated.Value(1)).current; // Glowing logo pulse
-  const progressAnim = useRef(new Animated.Value(0)).current; // Progress bar transition
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const splashOpacity = useRef(new Animated.Value(1)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
   const progressBarOpacity = useRef(new Animated.Value(0)).current;
+
+  // Auto-update target URL if Constants detects the host dynamically
+  useEffect(() => {
+    const detected = getDetectedServerUrl();
+    if (detected && detected !== targetUrl) {
+      setTargetUrl(detected);
+      setInputUrl(detected);
+    }
+  }, []);
 
   // Continuous gentle cosmic pulsing animation for the loader
   useEffect(() => {
@@ -332,9 +432,9 @@ export default function App() {
               // Network & Mixed content for local dev
               mixedContentMode="always"
               originWhitelist={['*']}
-              // Inject smooth mobile transitions without touching web files
-              injectedJavaScriptBeforeContentLoaded={INJECTED_TRANSITIONS_SCRIPT}
-              injectedJavaScript={INJECTED_TRANSITIONS_SCRIPT}
+              // Inject flawless mobile styling & smooth transitions without touching web files
+              injectedJavaScriptBeforeContentLoaded={INJECTED_MOBILE_STYLING_SCRIPT}
+              injectedJavaScript={INJECTED_MOBILE_STYLING_SCRIPT}
               // Event handlers
               onLoadProgress={handleLoadProgress}
               onLoadStart={handleLoadStart}
@@ -342,7 +442,6 @@ export default function App() {
               onError={handleLoadError}
               onNavigationStateChange={(navState) => {
                 setCanGoBack(navState.canGoBack);
-                if (navState.title) setNavTitle(navState.title);
               }}
             />
           </Animated.View>
@@ -472,7 +571,7 @@ export default function App() {
                 style={styles.input}
                 value={inputUrl}
                 onChangeText={setInputUrl}
-                placeholder="http://172.26.28.70:3000"
+                placeholder={`http://${CURRENT_WIFI_IP}:3000`}
                 placeholderTextColor="#64748b"
                 autoCapitalize="none"
                 autoCorrect={false}

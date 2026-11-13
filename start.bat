@@ -85,7 +85,7 @@ if errorlevel 1 (
     timeout /t 3 /nobreak >nul
 )
 cd /d "%~dp0expo-app"
-npx expo start --tunnel
+npx expo start --tunnel ngrok
 pause
 goto menu
 

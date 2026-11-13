@@ -8,7 +8,7 @@
     "start": "next start -H 0.0.0.0 -p 3000",
     "lint": "eslint",
     "mobile": "cd expo-app && npx expo start",
-    "mobile:tunnel": "cd expo-app && npx expo start --tunnel",
+    "mobile:tunnel": "cd expo-app && npx expo start --tunnel ngrok",
     "mobile:apk": "cd expo-app && npx eas-cli build -p android --profile preview"
   },
   "dependencies": {
